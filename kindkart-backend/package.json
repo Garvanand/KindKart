@@ -1,20 +1,41 @@
 {
   "name": "kindkart-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["kindkart", "community", "backend", "api"],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "KindKart Backend API Server",
   "dependencies": {
+    "@prisma/client": "^6.16.1",
     "@types/express": "^5.0.3",
     "@types/node": "^24.4.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "firebase-admin": "^13.5.0",
+    "jsonwebtoken": "^9.0.2",
     "nodemon": "^3.1.10",
+    "prisma": "^6.16.1",
+    "razorpay": "^2.9.6",
+    "redis": "^5.8.2",
+    "socket.io": "^4.8.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/jsonwebtoken": "^9.0.10"
   }
 }
