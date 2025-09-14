@@ -205,6 +205,76 @@ class ApiClient {
         method: 'GET',
       }),
   };
+
+  // Message endpoints
+  messages = {
+    getByRequest: (requestId: string) =>
+      this.request(`/api/messages/request/${requestId}`, {
+        method: 'GET',
+      }),
+
+    send: (requestId: string, content: string, receiverId: string) =>
+      this.request('/api/messages/send', {
+        method: 'POST',
+        body: JSON.stringify({ requestId, content, receiverId }),
+      }),
+
+    getConversations: () =>
+      this.request('/api/messages/conversations', {
+        method: 'GET',
+      }),
+  };
+
+  // Payment endpoints
+  payments = {
+    createOrder: (data: {
+      requestId: string;
+      amount: number;
+      currency: string;
+      helperId: string;
+    }) =>
+      this.request('/api/payments/create-order', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    verifyPayment: (data: {
+      orderId: string;
+      paymentId: string;
+      signature: string;
+    }) =>
+      this.request('/api/payments/verify', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    getWallet: (userId: string) =>
+      this.request(`/api/payments/wallet/${userId}`, {
+        method: 'GET',
+      }),
+
+    getTransactions: () =>
+      this.request('/api/payments/transactions', {
+        method: 'GET',
+      }),
+
+    releasePayment: (transactionId: string) =>
+      this.request(`/api/payments/release/${transactionId}`, {
+        method: 'POST',
+      }),
+
+    disputePayment: (transactionId: string, reason: string) =>
+      this.request(`/api/payments/dispute/${transactionId}`, {
+        method: 'POST',
+        body: JSON.stringify({ reason }),
+      }),
+
+    markCompleted: (requestId: string, proof?: string) =>
+      this.request(`/api/payments/complete/${requestId}`, {
+        method: 'POST',
+        body: JSON.stringify({ proof }),
+      }),
+  };
 }
 
 export const api = new ApiClient(API_BASE_URL);

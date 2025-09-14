@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { PrismaClient } from '@prisma/client';
+import { setupChatHandlers } from './socket/chatHandlers';
 
 // Load environment variables
 dotenv.config();
@@ -14,7 +15,8 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -39,25 +41,11 @@ app.use('/api/auth', require('./routes/auth').authRoutes);
 app.use('/api/users', require('./routes/users').userRoutes);
 app.use('/api/communities', require('./routes/communities').communityRoutes);
 app.use('/api/requests', require('./routes/requests').requestRoutes);
+app.use('/api/messages', require('./routes/messages').messageRoutes);
+app.use('/api/payments', require('./routes/payments').paymentRoutes);
 
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('join-community', (communityId: string) => {
-    socket.join(`community-${communityId}`);
-    console.log(`User ${socket.id} joined community ${communityId}`);
-  });
-
-  socket.on('leave-community', (communityId: string) => {
-    socket.leave(`community-${communityId}`);
-    console.log(`User ${socket.id} left community ${communityId}`);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
+// Setup Socket.IO handlers
+setupChatHandlers(io);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
