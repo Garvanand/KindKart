@@ -43,6 +43,7 @@ app.use('/api/communities', require('./routes/communities').communityRoutes);
 app.use('/api/requests', require('./routes/requests').requestRoutes);
 app.use('/api/messages', require('./routes/messages').messageRoutes);
 app.use('/api/payments', require('./routes/payments').paymentRoutes);
+app.use('/api/reputation', require('./routes/reputation').reputationRoutes);
 
 // Setup Socket.IO handlers
 setupChatHandlers(io);

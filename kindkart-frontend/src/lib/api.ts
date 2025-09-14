@@ -275,6 +275,67 @@ class ApiClient {
         body: JSON.stringify({ proof }),
       }),
   };
+
+  // Reputation endpoints
+  reputation = {
+    getUserReputation: (userId: string) =>
+      this.request(`/api/reputation/user/${userId}`, {
+        method: 'GET',
+      }),
+
+    getUserBadges: (userId: string) =>
+      this.request(`/api/reputation/user/${userId}/badges`, {
+        method: 'GET',
+      }),
+
+    getUserAchievements: (userId: string) =>
+      this.request(`/api/reputation/user/${userId}/achievements`, {
+        method: 'GET',
+      }),
+
+    getLeaderboard: (params: {
+      type: 'overall' | 'community' | 'helpers' | 'requesters';
+      communityId?: string;
+      timeRange?: 'week' | 'month' | 'all';
+      limit?: number;
+    }) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append('type', params.type);
+      if (params.communityId) queryParams.append('communityId', params.communityId);
+      if (params.timeRange) queryParams.append('timeRange', params.timeRange);
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      
+      return this.request(`/api/reputation/leaderboard?${queryParams}`, {
+        method: 'GET',
+      });
+    },
+
+    getCommunityReputation: (communityId: string) =>
+      this.request(`/api/reputation/community/${communityId}`, {
+        method: 'GET',
+      }),
+
+    updateReputation: (data: {
+      userId: string;
+      action: string;
+      points: number;
+      context?: any;
+    }) =>
+      this.request('/api/reputation/update', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    awardBadge: (data: {
+      userId: string;
+      badgeId: string;
+      context?: any;
+    }) =>
+      this.request('/api/reputation/award-badge', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  };
 }
 
 export const api = new ApiClient(API_BASE_URL);

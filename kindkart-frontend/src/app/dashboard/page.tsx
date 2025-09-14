@@ -6,6 +6,9 @@ import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Plus, Users, MapPin, Calendar, Star, TrendingUp, Award, Trophy } from 'lucide-react';
 
 interface Community {
   id: string;
@@ -72,6 +75,24 @@ export default function Dashboard() {
               <h1 className="text-xl font-semibold text-gray-900">KindKart</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/reputation')}
+                className="flex items-center gap-2"
+              >
+                <Trophy className="w-4 h-4" />
+                Reputation
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/wallet')}
+                className="flex items-center gap-2"
+              >
+                <Award className="w-4 h-4" />
+                Wallet
+              </Button>
               <span className="text-sm text-gray-700">Welcome, {user.name}</span>
               <Button variant="outline" onClick={handleLogout}>
                 Logout
