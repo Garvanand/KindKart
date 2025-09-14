@@ -1,0 +1,70 @@
+# KindKart Project Intelligence
+
+## Project Patterns & Preferences
+
+### Development Workflow
+- **Mode-based operation**: PLAN mode for planning, ACT mode for implementation
+- **Memory bank driven**: Always read memory bank files before starting work
+- **Phase-based development**: Complete each phase fully before moving to next
+- **Mobile-first approach**: All UI components optimized for mobile devices
+
+### Code Quality Standards
+- **TypeScript strict mode**: No any types, proper type definitions
+- **Component-based architecture**: Reusable components with shadcn/ui
+- **Form handling**: React Hook Form with Zod validation
+- **State management**: Zustand for global state, React Context for local
+- **Real-time features**: Socket.IO for live updates and chat
+
+### Key Technical Decisions
+- **Authentication**: Firebase Auth with OTP verification (mobile-first)
+- **Database**: PostgreSQL with Prisma ORM for type-safe queries
+- **Payments**: Razorpay with escrow system for security
+- **File storage**: AWS S3 or Firebase Storage for media uploads
+- **Hosting**: Vercel (frontend) + Railway (backend)
+
+### Project Structure
+```
+kindkart/
+├── frontend/          # Next.js 14+ with App Router
+├── backend/           # Express.js with TypeScript
+├── shared/            # Shared types and utilities
+├── docs/              # Documentation
+└── memory-bank/       # Project context and progress
+```
+
+### Critical Implementation Paths
+1. **Authentication Flow**: Firebase OTP → JWT tokens → Protected routes
+2. **Community Management**: Invite codes → Admin approval → Member directory
+3. **Help Requests**: Create → Real-time feed → Helper assignment → Chat
+4. **Payment Flow**: Escrow hold → Task completion → Verification → Release
+5. **Reputation System**: Points calculation → Leaderboards → Badges
+
+### User Experience Priorities
+- **Trust & Safety**: Verified profiles, community moderation, secure payments
+- **Engagement**: Gamified reputation, real-time notifications, mobile-first UI
+- **Accessibility**: Touch-friendly interface, offline capabilities, fast loading
+
+### Known Challenges & Solutions
+- **Real-time scaling**: Use Socket.IO rooms for community-based updates
+- **Payment security**: Implement escrow with automatic release mechanism
+- **Mobile performance**: Optimize images, lazy loading, code splitting
+- **Free tier limits**: Monitor usage, implement compression, efficient queries
+
+### Testing Strategy
+- **Unit tests**: Business logic and utility functions
+- **Integration tests**: API endpoints and database operations
+- **E2E tests**: Critical user flows (auth, requests, payments)
+- **Component tests**: UI components with React Testing Library
+
+### Deployment & Monitoring
+- **Frontend**: Vercel with automatic deployments from main branch
+- **Backend**: Railway with environment variable management
+- **Database**: Prisma migrations with automated deployment
+- **Monitoring**: Built-in analytics + custom error tracking
+
+### Security Considerations
+- **Input validation**: Server-side validation for all inputs
+- **Rate limiting**: Prevent abuse and spam attacks
+- **CORS configuration**: Proper cross-origin setup
+- **JWT security**: Secure token management with refresh logic
+- **File uploads**: Size limits, type validation, secure storage
