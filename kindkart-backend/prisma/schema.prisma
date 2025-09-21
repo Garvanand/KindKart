@@ -26,7 +26,8 @@ model User {
   // Relations
   communities      CommunityMember[]
   createdCommunities Community[] @relation("CommunityAdmin")
-  helpRequests     HelpRequest[]
+  createdRequests  HelpRequest[] @relation("RequestCreator")
+  helpingRequests  HelpRequest[] @relation("RequestHelper")
   requestResponses RequestResponse[]
   sentMessages     Message[] @relation("MessageSender")
   receivedMessages Message[] @relation("MessageReceiver")
@@ -54,6 +55,7 @@ model Community {
   helpRequests HelpRequest[]
   reputations UserReputation[]
   leaderboards Leaderboard[]
+  badgeAssignments BadgeAssignment[]
 
   @@map("communities")
 }
@@ -91,9 +93,9 @@ model HelpRequest {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  requester     User              @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  requester     User              @relation("RequestCreator", fields: [requesterId], references: [id], onDelete: Cascade)
   community     Community         @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  helper        User?             @relation(fields: [helperId], references: [id])
+  helper        User?             @relation("RequestHelper", fields: [helperId], references: [id])
   responses     RequestResponse[]
   messages      Message[]
   transactions  Transaction[]

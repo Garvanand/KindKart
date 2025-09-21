@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { useHydration } from '@/hooks/useHydration';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,11 +26,17 @@ interface Community {
 
 export default function Dashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, isHydrated, logout } = useAuthStore();
+  const isClientHydrated = useHydration();
   const [communities, setCommunities] = useState<Community[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Wait for both Zustand hydration and client-side hydration
+  const isFullyHydrated = isHydrated && isClientHydrated;
+
   useEffect(() => {
+    if (!isFullyHydrated) return;
+
     if (!isAuthenticated) {
       router.push('/auth');
       return;
@@ -48,12 +55,24 @@ export default function Dashboard() {
     };
 
     loadCommunities();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isFullyHydrated, router]);
 
   const handleLogout = () => {
     logout();
     router.push('/auth');
   };
+
+  // Show loading state until fully hydrated
+  if (!isFullyHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">KindKart</h1>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user) {
     return (

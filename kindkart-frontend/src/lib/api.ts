@@ -21,17 +21,22 @@ class ApiClient {
       ...options,
     };
 
-    // Add auth token if available
-    if (typeof window !== 'undefined') {
-      const authStore = localStorage.getItem('kindkart-auth-storage');
-      if (authStore) {
-        const { state } = JSON.parse(authStore);
-        if (state.accessToken) {
-          config.headers = {
-            ...config.headers,
-            Authorization: `Bearer ${state.accessToken}`,
-          };
+    // Add auth token if available (only on client-side)
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        const authStore = localStorage.getItem('kindkart-auth-storage');
+        if (authStore) {
+          const parsed = JSON.parse(authStore);
+          if (parsed?.state?.accessToken) {
+            config.headers = {
+              ...config.headers,
+              Authorization: `Bearer ${parsed.state.accessToken}`,
+            };
+          }
         }
+      } catch (error) {
+        // Silently fail if localStorage is corrupted or unavailable
+        console.warn('Failed to read auth token from localStorage:', error);
       }
     }
 

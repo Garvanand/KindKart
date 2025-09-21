@@ -5,20 +5,27 @@ import { useRouter } from 'next/navigation';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { ProfileSetupForm } from '@/components/auth/ProfileSetupForm';
 import { useAuthStore } from '@/store/authStore';
+import { useHydration } from '@/hooks/useHydration';
 import { api } from '@/lib/api';
 
 export default function AuthPage() {
   const [authStep, setAuthStep] = useState<'login' | 'profile' | 'complete'>('login');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { user, isAuthenticated, setUser } = useAuthStore();
+  const { user, isAuthenticated, isHydrated, setUser } = useAuthStore();
+  const isClientHydrated = useHydration();
+
+  // Wait for both Zustand hydration and client-side hydration
+  const isFullyHydrated = isHydrated && isClientHydrated;
 
   useEffect(() => {
+    if (!isFullyHydrated) return;
+
     if (isAuthenticated && user) {
       // If user is already authenticated, redirect to dashboard
       router.push('/dashboard');
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, isFullyHydrated, router]);
 
   const handleLoginSuccess = () => {
     setAuthStep('profile');
@@ -42,6 +49,18 @@ export default function AuthPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state until fully hydrated
+  if (!isFullyHydrated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">KindKart</h1>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface User {
   id: string;
@@ -15,6 +15,7 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isHydrated: boolean;
 }
 
 interface AuthActions {
@@ -22,11 +23,25 @@ interface AuthActions {
   setUser: (user: User) => void;
   setTokens: (accessToken: string, refreshToken?: string) => void;
   setLoading: (loading: boolean) => void;
+  setHydrated: (hydrated: boolean) => void;
   logout: () => void;
   clearAuth: () => void;
 }
 
 type AuthStore = AuthState & AuthActions;
+
+// Create a safe storage that only works on client-side
+const createSafeStorage = () => {
+  if (typeof window === 'undefined') {
+    // Return a no-op storage for SSR
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    };
+  }
+  return localStorage;
+};
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -37,6 +52,7 @@ export const useAuthStore = create<AuthStore>()(
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      isHydrated: false,
 
       // Actions
       setAuth: (user, accessToken, refreshToken) => {
@@ -65,6 +81,10 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading });
       },
 
+      setHydrated: (isHydrated) => {
+        set({ isHydrated });
+      },
+
       logout: () => {
         set({
           user: null,
@@ -87,12 +107,18 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'kindkart-auth-storage',
+      storage: createJSONStorage(() => createSafeStorage()),
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHydrated(true);
+        }
+      },
     }
   )
 );
