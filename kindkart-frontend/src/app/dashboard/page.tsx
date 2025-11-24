@@ -37,16 +37,19 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isFullyHydrated) return;
 
-    if (!isAuthenticated) {
-      router.push('/auth');
-      return;
-    }
+    // BYPASS: Allow viewing dashboard without authentication
+    // if (!isAuthenticated) {
+    //   router.push('/auth');
+    //   return;
+    // }
 
-    // Load user's communities
+    // Load user's communities (will work when authenticated)
     const loadCommunities = async () => {
       try {
-        const userCommunities = await api.users.getCommunities();
-        setCommunities(userCommunities);
+        if (isAuthenticated) {
+          const userCommunities = await api.users.getCommunities();
+          setCommunities(userCommunities);
+        }
       } catch (error) {
         console.error('Failed to load communities:', error);
       } finally {
@@ -74,15 +77,16 @@ export default function Dashboard() {
     );
   }
 
-  if (!isAuthenticated || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
+  // BYPASS: Allow viewing dashboard without authentication
+  // if (!isAuthenticated || !user) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-center">
+  //         <p className="text-gray-600">Redirecting...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -111,10 +115,18 @@ export default function Dashboard() {
               >
                 <Award className="w-4 h-4" />
                 Wallet
-              </Button>
-              <span className="text-sm text-gray-700">Welcome, {user.name}</span>
-              <Button variant="outline" onClick={handleLogout}>
-                Logout
+              <span className="text-sm text-gray-700">
+                Welcome, {user?.name || 'Guest'}
+              </span>
+              {isAuthenticated ? (
+                <Button variant="outline" onClick={handleLogout}>
+                  Logout
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={() => router.push('/auth')}>
+                  Login
+                </Button>
+              )}
               </Button>
             </div>
           </div>
