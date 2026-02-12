@@ -7,6 +7,7 @@ interface User {
   phone: string;
   name: string;
   isVerified: boolean;
+  isGuest?: boolean;
 }
 
 interface AuthState {

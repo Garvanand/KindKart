@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { AppShell, PageContainer } from '@/components/layout';
 import { ReputationCard } from '@/components/reputation/ReputationCard';
 import { Leaderboard } from '@/components/reputation/Leaderboard';
 import { BadgeDisplay } from '@/components/reputation/BadgeDisplay';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Star, Trophy, Award, TrendingUp } from 'lucide-react';
+import { Star, Trophy, Award, TrendingUp } from 'lucide-react';
+import { AIAssistant } from '@/components/AIAssistant';
 
 export default function ReputationPage() {
   const router = useRouter();
@@ -28,34 +30,18 @@ export default function ReputationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/dashboard')}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900">Reputation & Gamification</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                View Analytics
-              </Button>
-            </div>
+    <AppShell>
+      <PageContainer className="py-6 lg:py-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Reputation</h1>
+            <p className="text-sm text-muted-foreground">Badges, leaderboard & achievements</p>
           </div>
+          <Button variant="outline" size="sm">
+            <TrendingUp className="mr-2 h-4 w-4" />
+            View analytics
+          </Button>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
@@ -240,7 +226,11 @@ export default function ReputationPage() {
             </div>
           </TabsContent>
         </Tabs>
-      </main>
-    </div>
+
+        <div className="mt-8">
+          <AIAssistant context="reputation, badges, and leaderboards" />
+        </div>
+      </PageContainer>
+    </AppShell>
   );
 }

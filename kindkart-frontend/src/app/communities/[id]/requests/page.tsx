@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { AppShell, PageContainer } from '@/components/layout';
 import { RequestFeed } from '@/components/requests/RequestFeed';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus } from 'lucide-react';
@@ -11,58 +11,53 @@ export default function CommunityRequestsPage() {
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
-  const [communityId, setCommunityId] = useState<string>('');
+  const communityId = params.id as string;
 
-  // Get community ID from params
-  useEffect(() => {
-    setCommunityId(params.id as string);
-  }, [params.id]);
-
-  // Redirect if not authenticated
   if (!isAuthenticated || !user) {
     router.push('/auth');
     return null;
   }
 
-  const handleRequestClick = (request: any) => {
+  const handleRequestClick = (request: { id: string }) => {
     router.push(`/communities/${communityId}/requests/${request.id}`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push(`/communities/${communityId}`)}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Community
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900">Community Requests</h1>
-            </div>
+    <AppShell communityId={communityId}>
+      <PageContainer className="py-6 lg:py-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
             <Button
-              onClick={() => router.push(`/communities/${communityId}/requests/create`)}
-              className="bg-blue-600 hover:bg-blue-700"
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push(`/communities/${communityId}`)}
+              aria-label="Back to community"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Request
+              <ArrowLeft className="h-4 w-4" />
             </Button>
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight text-foreground">
+                Requests
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Help requests in this community
+              </p>
+            </div>
           </div>
+          <Button
+            onClick={() => router.push(`/communities/${communityId}/requests/create`)}
+            className="w-full sm:w-auto"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create request
+          </Button>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <RequestFeed 
+        <RequestFeed
           communityId={communityId}
           onRequestClick={handleRequestClick}
         />
-      </main>
-    </div>
+      </PageContainer>
+    </AppShell>
   );
 }

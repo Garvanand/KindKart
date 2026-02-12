@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button';
 
 export default function CreateCommunityPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isHydrated } = useAuthStore();
   const [createdCommunity, setCreatedCommunity] = useState<any>(null);
 
-  // Redirect if not authenticated
-  if (!isAuthenticated || !user) {
+  // Allow guests to create communities (they'll be converted to real users)
+  // Only redirect if not authenticated at all
+  if (isHydrated && !isAuthenticated) {
     router.push('/auth');
     return null;
   }

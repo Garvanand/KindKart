@@ -70,7 +70,10 @@ export function JoinCommunityForm({ onSuccess }: JoinCommunityFormProps) {
       
       reset();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join community');
+      const msg = err instanceof Error ? err.message : 'Failed to join community';
+      setError(msg.includes('Unable to connect') || msg.includes('Failed to fetch')
+        ? 'Server is not available. Start the backend to join communities.'
+        : msg);
     } finally {
       setIsLoading(false);
     }

@@ -1,0 +1,47 @@
+'use client';
+
+import { createContext, useContext, useEffect, useState } from 'react';
+
+type ThemeId = 'society-light' | 'midnight-elite' | 'neon-trust';
+
+interface ThemeContextValue {
+  theme: ThemeId;
+  setTheme: (theme: ThemeId) => void;
+}
+
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+const STORAGE_KEY = 'kindkart-theme';
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<ThemeId>('society-light');
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const stored = (localStorage.getItem(STORAGE_KEY) as ThemeId | null) || 'society-light';
+    setThemeState(stored);
+    document.documentElement.setAttribute('data-theme', stored);
+  }, []);
+
+  const setTheme = (value: ThemeId) => {
+    setThemeState(value);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', value);
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, value);
+    }
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
+}
+

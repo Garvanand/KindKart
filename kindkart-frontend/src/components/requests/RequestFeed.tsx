@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HELP_REQUEST_CATEGORIES, REQUEST_STATUSES } from '@/lib/constants';
-import { Search, Clock, MapPin, User, MessageCircle, CheckCircle } from 'lucide-react';
+import { Search, Clock, MapPin, CheckCircle, HelpCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
@@ -66,9 +68,10 @@ export function RequestFeed({ communityId, onRequestClick }: RequestFeedProps) {
     try {
       setIsLoading(true);
       const communityRequests = await api.requests.getByCommunity(communityId);
-      setRequests(communityRequests);
+      setRequests(Array.isArray(communityRequests) ? communityRequests : []);
     } catch (error) {
-      console.error('Failed to load requests:', error);
+      console.warn('Requests unavailable (backend may be off):', error);
+      setRequests([]);
     } finally {
       setIsLoading(false);
     }
@@ -86,17 +89,17 @@ export function RequestFeed({ communityId, onRequestClick }: RequestFeedProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-warning/15 text-warning';
       case 'accepted':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/15 text-primary';
       case 'in_progress':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-info/15 text-info';
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success/15 text-success';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/15 text-destructive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -128,10 +131,37 @@ export function RequestFeed({ communityId, onRequestClick }: RequestFeedProps) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading requests...</p>
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+        <div className="space-y-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                  <Skeleton className="h-5 w-16 shrink-0" />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Skeleton className="mb-4 h-12 w-full" />
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -140,25 +170,24 @@ export function RequestFeed({ communityId, onRequestClick }: RequestFeedProps) {
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <Card>
+      <Card className="border-border/50">
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search requests..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-9"
               />
             </div>
-            
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
+                <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {HELP_REQUEST_CATEGORIES.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     <div className="flex items-center gap-2">
@@ -169,16 +198,15 @@ export function RequestFeed({ communityId, onRequestClick }: RequestFeedProps) {
                 ))}
               </SelectContent>
             </Select>
-
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="accepted">Accepted</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="in_progress">In progress</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
@@ -190,17 +218,16 @@ export function RequestFeed({ communityId, onRequestClick }: RequestFeedProps) {
       {/* Request List */}
       <div className="space-y-4">
         {filteredRequests.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className="text-gray-400 mb-4">
-                <MessageCircle className="w-12 h-12 mx-auto" />
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <HelpCircle className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No requests found</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-semibold text-foreground">No requests found</h3>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
                 {searchTerm || selectedCategory !== 'all' || selectedStatus !== 'all'
                   ? 'Try adjusting your filters to see more requests.'
-                  : 'Be the first to create a help request in this community!'
-                }
+                  : 'Be the first to create a help request in this community.'}
               </p>
             </CardContent>
           </Card>
@@ -208,94 +235,94 @@ export function RequestFeed({ communityId, onRequestClick }: RequestFeedProps) {
           filteredRequests.map((request) => {
             const categoryData = getCategoryData(request.category);
             const canRespond = request.status === 'pending' && request.requester.id !== user?.id;
-            
+
             return (
-              <Card key={request.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl">{categoryData.icon}</span>
-                        <Badge className={categoryData.color}>
+              <Card
+                key={request.id}
+                className="cursor-pointer transition-colors hover:border-primary/30 hover:bg-muted/30"
+                onClick={() => onRequestClick?.(request)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <span className="text-lg">{categoryData.icon}</span>
+                        <Badge variant="secondary" className="font-normal">
                           {categoryData.name}
                         </Badge>
-                        <Badge className={getStatusColor(request.status)}>
+                        <Badge className={cn('font-normal', getStatusColor(request.status))}>
                           {request.status.replace('_', ' ')}
                         </Badge>
                       </div>
-                      <CardTitle 
-                        className="text-lg cursor-pointer"
-                        onClick={() => onRequestClick?.(request)}
-                      >
+                      <CardTitle className="text-base font-semibold leading-tight">
                         {request.title}
                       </CardTitle>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="w-4 h-4" />
-                        {new Date(request.createdAt).toLocaleDateString()}
-                      </div>
+                    <div className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" />
+                      {new Date(request.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                 </CardHeader>
-                
                 <CardContent className="pt-0">
-                  <p className="text-gray-600 mb-4 line-clamp-3">
+                  <p className="line-clamp-3 text-sm text-muted-foreground">
                     {request.description}
                   </p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
                     {request.location && (
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <MapPin className="w-4 h-4" />
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5" />
                         {request.location}
-                      </div>
+                      </span>
                     )}
                     {request.timing && (
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="w-4 h-4" />
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" />
                         {request.timing}
-                      </div>
+                      </span>
                     )}
                   </div>
-
-                  <div className="flex items-center justify-between">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8">
+                      <Avatar className="h-8 w-8">
                         <AvatarImage src={request.requester.profilePhoto} />
-                        <AvatarFallback>{getInitials(request.requester.name)}</AvatarFallback>
+                        <AvatarFallback className="text-xs">
+                          {getInitials(request.requester.name)}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-sm">{request.requester.name}</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {request.requester.name}
+                        </p>
                         {request.requester.qualification && (
-                          <p className="text-xs text-gray-500">{request.requester.qualification}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {request.requester.qualification}
+                          </p>
                         )}
                       </div>
                     </div>
-
                     {request.helper && (
-                      <div className="flex items-center gap-2 text-sm text-green-600">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Helped by {request.helper.name}</span>
-                      </div>
+                      <span className="flex items-center gap-1.5 text-sm text-success">
+                        <CheckCircle className="h-4 w-4" />
+                        Helped by {request.helper.name}
+                      </span>
                     )}
-
                     {canRespond && (
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRespondToRequest(request.id);
                         }}
                       >
-                        Offer Help
+                        Offer help
                       </Button>
                     )}
-
-                    {request.responses && request.responses.length > 0 && (
-                      <div className="text-sm text-gray-500">
-                        {request.responses.length} response{request.responses.length !== 1 ? 's' : ''}
-                      </div>
+                    {request.responses && request.responses.length > 0 && !request.helper && (
+                      <span className="text-sm text-muted-foreground">
+                        {request.responses.length} response
+                        {request.responses.length !== 1 ? 's' : ''}
+                      </span>
                     )}
                   </div>
                 </CardContent>

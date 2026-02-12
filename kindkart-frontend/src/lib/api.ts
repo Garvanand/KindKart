@@ -51,6 +51,12 @@ class ApiClient {
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // Provide more helpful error messages
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error('Unable to connect to server. Please make sure the backend is running on ' + this.baseURL);
+      }
+      
       throw error;
     }
   }
@@ -81,6 +87,11 @@ class ApiClient {
       this.request('/api/auth/refresh-token', {
         method: 'POST',
         body: JSON.stringify({ refreshToken }),
+      }),
+
+    guestLogin: () =>
+      this.request('/api/auth/guest-login', {
+        method: 'POST',
       }),
 
     logout: () =>

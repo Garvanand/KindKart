@@ -1,256 +1,125 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db, generateId, parseJson } from '../lib/db';
 
 interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    phone: string;
-  };
+  user?: { id: string; email: string; phone: string };
 }
 
 export const communityController = {
-  // Create a new community
-  createCommunity: async (req: AuthRequest, res: Response) => {
+  createCommunity: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
       const { name, rules } = req.body;
+      if (!name) { res.status(400).json({ error: 'Community name required' }); return; }
 
-      if (!name) {
-        return res.status(400).json({ error: 'Community name required' });
-      }
-
-      // Generate unique invite code
       const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-      const community = await prisma.community.create({
-        data: {
-          name,
-          inviteCode,
-          adminId: req.user.id,
-          rules: rules || null
-        },
-        include: {
-          admin: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        }
-      });
+      const id = generateId();
+      db.prepare('INSERT INTO communities (id, name, inviteCode, adminId, rules) VALUES (?, ?, ?, ?, ?)').run(id, name, inviteCode, req.user.id, rules || null);
 
       // Add creator as admin member
-      await prisma.communityMember.create({
-        data: {
-          communityId: community.id,
-          userId: req.user.id,
-          role: 'admin',
-          status: 'approved'
-        }
-      });
+      const memberId = generateId();
+      db.prepare("INSERT INTO community_members (id, communityId, userId, role, status) VALUES (?, ?, ?, 'admin', 'approved')").run(memberId, id, req.user.id);
 
-      res.status(201).json({
-        message: 'Community created successfully',
-        community
-      });
+      const community: any = db.prepare('SELECT * FROM communities WHERE id = ?').get(id);
+      const admin: any = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(req.user.id);
+      community.admin = admin;
+
+      res.status(201).json({ message: 'Community created successfully', community });
     } catch (error) {
       console.error('Create community error:', error);
       res.status(500).json({ error: 'Failed to create community' });
     }
   },
 
-  // Join community using invite code
-  joinCommunity: async (req: AuthRequest, res: Response) => {
+  joinCommunity: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
       const { inviteCode } = req.body;
+      if (!inviteCode) { res.status(400).json({ error: 'Invite code required' }); return; }
 
-      if (!inviteCode) {
-        return res.status(400).json({ error: 'Invite code required' });
-      }
+      const community: any = db.prepare('SELECT * FROM communities WHERE inviteCode = ?').get(inviteCode);
+      if (!community) { res.status(404).json({ error: 'Invalid invite code' }); return; }
 
-      // Find community by invite code
-      const community = await prisma.community.findUnique({
-        where: { inviteCode }
-      });
+      const existing: any = db.prepare('SELECT id FROM community_members WHERE communityId = ? AND userId = ?').get(community.id, req.user.id);
+      if (existing) { res.status(400).json({ error: 'Already a member of this community' }); return; }
 
-      if (!community) {
-        return res.status(404).json({ error: 'Invalid invite code' });
-      }
+      const id = generateId();
+      db.prepare("INSERT INTO community_members (id, communityId, userId, role, status) VALUES (?, ?, ?, 'member', 'pending')").run(id, community.id, req.user.id);
 
-      // Check if user is already a member
-      const existingMember = await prisma.communityMember.findFirst({
-        where: {
-          communityId: community.id,
-          userId: req.user.id
-        }
-      });
+      const membership: any = db.prepare('SELECT * FROM community_members WHERE id = ?').get(id);
+      membership.community = { id: community.id, name: community.name, inviteCode: community.inviteCode };
 
-      if (existingMember) {
-        return res.status(400).json({ error: 'Already a member of this community' });
-      }
-
-      // Add user as pending member
-      const membership = await prisma.communityMember.create({
-        data: {
-          communityId: community.id,
-          userId: req.user.id,
-          role: 'member',
-          status: 'pending'
-        },
-        include: {
-          community: {
-            select: {
-              id: true,
-              name: true,
-              inviteCode: true
-            }
-          }
-        }
-      });
-
-      res.status(201).json({
-        message: 'Join request submitted successfully',
-        membership
-      });
+      res.status(201).json({ message: 'Join request submitted successfully', membership });
     } catch (error) {
       console.error('Join community error:', error);
       res.status(500).json({ error: 'Failed to join community' });
     }
   },
 
-  // Get community details
-  getCommunity: async (req: AuthRequest, res: Response) => {
+  getCommunity: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
       const { id } = req.params;
 
-      const community = await prisma.community.findUnique({
-        where: { id },
-        include: {
-          admin: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          members: {
-            where: {
-              status: 'approved'
-            },
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  profilePhoto: true
-                }
-              }
-            }
-          }
-        }
+      const community: any = db.prepare('SELECT * FROM communities WHERE id = ?').get(id);
+      if (!community) { res.status(404).json({ error: 'Community not found' }); return; }
+
+      const admin: any = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(community.adminId);
+      community.admin = admin;
+      community.settings = parseJson(community.settings, null);
+
+      const members: any[] = db.prepare('SELECT * FROM community_members WHERE communityId = ?').all(id);
+      const membersWithUsers = members.map((m: any) => {
+        const user: any = db.prepare('SELECT id, name, email, profilePhoto, qualification, certifications FROM users WHERE id = ?').get(m.userId);
+        if (user) user.certifications = parseJson(user.certifications, []);
+        return { ...m, user };
       });
 
-      if (!community) {
-        return res.status(404).json({ error: 'Community not found' });
-      }
-
-      res.json(community);
+      res.json({ ...community, members: membersWithUsers });
     } catch (error) {
       console.error('Get community error:', error);
       res.status(500).json({ error: 'Failed to get community' });
     }
   },
 
-  // Get community members
-  getMembers: async (req: AuthRequest, res: Response) => {
+  getMembers: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
       const { id } = req.params;
 
-      const members = await prisma.communityMember.findMany({
-        where: { communityId: id },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              profilePhoto: true,
-              qualification: true,
-              certifications: true
-            }
-          }
-        },
-        orderBy: [
-          { role: 'asc' }, // admin first
-          { joinedAt: 'asc' }
-        ]
+      const members: any[] = db.prepare('SELECT * FROM community_members WHERE communityId = ?').all(id);
+      const membersWithUsers = members.map((m: any) => {
+        const user: any = db.prepare('SELECT id, name, email, profilePhoto, qualification, certifications FROM users WHERE id = ?').get(m.userId);
+        if (user) user.certifications = parseJson(user.certifications, []);
+        return { ...m, user };
       });
 
-      res.json(members);
+      membersWithUsers.sort((a, b) => {
+        if (a.role === 'admin' && b.role !== 'admin') return -1;
+        if (a.role !== 'admin' && b.role === 'admin') return 1;
+        return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
+      });
+
+      res.json(membersWithUsers);
     } catch (error) {
       console.error('Get members error:', error);
       res.status(500).json({ error: 'Failed to get members' });
     }
   },
 
-  // Approve member request
-  approveMember: async (req: AuthRequest, res: Response) => {
+  approveMember: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
       const { id } = req.params;
       const { userId } = req.body;
 
-      // Check if current user is admin of this community
-      const adminMembership = await prisma.communityMember.findFirst({
-        where: {
-          communityId: id,
-          userId: req.user.id,
-          role: 'admin'
-        }
-      });
+      const admin: any = db.prepare("SELECT id FROM community_members WHERE communityId = ? AND userId = ? AND role = 'admin'").get(id, req.user.id);
+      if (!admin) { res.status(403).json({ error: 'Admin access required' }); return; }
 
-      if (!adminMembership) {
-        return res.status(403).json({ error: 'Admin access required' });
-      }
+      const pending: any = db.prepare("SELECT id FROM community_members WHERE communityId = ? AND userId = ? AND status = 'pending'").get(id, userId);
+      if (!pending) { res.status(404).json({ error: 'Member request not found' }); return; }
 
-      // Update member status
-      const membership = await prisma.communityMember.updateMany({
-        where: {
-          communityId: id,
-          userId: userId
-        },
-        data: {
-          status: 'approved'
-        }
-      });
-
-      if (membership.count === 0) {
-        return res.status(404).json({ error: 'Member request not found' });
-      }
-
+      db.prepare("UPDATE community_members SET status = 'approved' WHERE id = ?").run(pending.id);
       res.json({ message: 'Member approved successfully' });
     } catch (error) {
       console.error('Approve member error:', error);
@@ -258,42 +127,19 @@ export const communityController = {
     }
   },
 
-  // Reject member request
-  rejectMember: async (req: AuthRequest, res: Response) => {
+  rejectMember: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
       const { id } = req.params;
       const { userId } = req.body;
 
-      // Check if current user is admin of this community
-      const adminMembership = await prisma.communityMember.findFirst({
-        where: {
-          communityId: id,
-          userId: req.user.id,
-          role: 'admin'
-        }
-      });
+      const admin: any = db.prepare("SELECT id FROM community_members WHERE communityId = ? AND userId = ? AND role = 'admin'").get(id, req.user.id);
+      if (!admin) { res.status(403).json({ error: 'Admin access required' }); return; }
 
-      if (!adminMembership) {
-        return res.status(403).json({ error: 'Admin access required' });
-      }
+      const pending: any = db.prepare("SELECT id FROM community_members WHERE communityId = ? AND userId = ? AND status = 'pending'").get(id, userId);
+      if (!pending) { res.status(404).json({ error: 'Member request not found' }); return; }
 
-      // Delete member request
-      const membership = await prisma.communityMember.deleteMany({
-        where: {
-          communityId: id,
-          userId: userId,
-          status: 'pending'
-        }
-      });
-
-      if (membership.count === 0) {
-        return res.status(404).json({ error: 'Member request not found' });
-      }
-
+      db.prepare('DELETE FROM community_members WHERE id = ?').run(pending.id);
       res.json({ message: 'Member request rejected' });
     } catch (error) {
       console.error('Reject member error:', error);

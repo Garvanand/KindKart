@@ -1,167 +1,165 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Heart, Shield, Sparkles, ArrowRight, MessageCircle, Star, TrendingUp } from 'lucide-react';
+import { PageHeader, HeroSection, PageSection, PremiumCard, StatCard } from '@/components/ui-kit';
+import { ArrowRight, MapPin, Users, Heart, Shield, MessageCircle } from 'lucide-react';
+
+function AnimatedCounter({ value, suffix = '+', duration = 1200 }: { value: number; suffix?: string; duration?: number }) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const step = Math.max(1, Math.floor(value / (duration / 16)));
+    const t = setInterval(() => {
+      start += step;
+      if (start >= value) {
+        setCount(value);
+        clearInterval(t);
+      } else setCount(start);
+    }, 16);
+    return () => clearInterval(t);
+  }, [value, duration]);
+  return <span className="text-4xl font-bold">{count}{suffix}</span>;
+}
 
 export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">KindKart</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" onClick={() => router.push('/auth')}>
-                Login
-              </Button>
-              <Button onClick={() => router.push('/dashboard')}>
-                Get Started
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-society-light-50 via-indigo-50 to-purple-50">
+      <PageHeader title="KindKart" description="Neighbors helping neighbors — at scale." />
 
-      {/* Hero Section */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-gray-900 mb-4">
-            Your Neighborhood, <span className="text-blue-600">Connected</span>
-          </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            KindKart brings neighbors together to help each other with everyday tasks. 
-            Build trust, earn reputation, and strengthen your community.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button size="lg" onClick={() => router.push('/dashboard')} className="gap-2">
-              Explore Now <ArrowRight className="w-4 h-4" />
-            </Button>
-            <Button size="lg" variant="outline" onClick={() => router.push('/communities/join')}>
-              Join Community
-            </Button>
+        <HeroSection
+          title={<span>Build a safer, stronger <span className="text-primary">community</span></span>}
+          subtitle="Connect. Help. Earn reputation. Make your neighborhood resilient and caring."
+          primaryAction={{ label: 'Get Started', onClick: () => router.push('/dashboard') }}
+          secondaryAction={{ label: 'Join a Community', onClick: () => router.push('/communities/join') }}
+        >
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <motion.div initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
+              <PremiumCard elevated>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Active Communities</p>
+                    <AnimatedCounter value={1200} />
+                  </div>
+                  <div className="rounded-full bg-primary/10 p-3">
+                    <MapPin className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+              </PremiumCard>
+            </motion.div>
+
+            <motion.div initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+              <PremiumCard elevated>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Neighbors Connected</p>
+                    <AnimatedCounter value={50000} />
+                  </div>
+                  <div className="rounded-full bg-primary/10 p-3">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+              </PremiumCard>
+            </motion.div>
+
+            <motion.div initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
+              <PremiumCard elevated>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Helps Completed</p>
+                    <AnimatedCounter value={100000} />
+                  </div>
+                  <div className="rounded-full bg-primary/10 p-3">
+                    <Heart className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+              </PremiumCard>
+            </motion.div>
           </div>
-        </div>
+        </HeroSection>
 
-        {/* Features Grid */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-16">
-          <Card className="border-2 hover:border-blue-500 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-blue-600" />
+        <PageSection title="How it works" subtitle="Simple steps to get started">
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="space-y-3">
+              <div className="rounded-lg p-4 bg-gradient-to-br from-white/60 to-muted/10 border">
+                <h4 className="font-semibold">1. Join or create a community</h4>
+                <p className="text-sm text-muted-foreground">Create secure communities for neighbors and manage membership.</p>
               </div>
-              <CardTitle>Community First</CardTitle>
-              <CardDescription>
-                Connect with verified neighbors in your local area and build meaningful relationships
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2 hover:border-green-500 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <Heart className="w-6 h-6 text-green-600" />
-              </div>
-              <CardTitle>Peer-to-Peer Help</CardTitle>
-              <CardDescription>
-                Request or offer help for everyday tasks like grocery shopping, pet sitting, or tutoring
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2 hover:border-purple-500 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-purple-600" />
-              </div>
-              <CardTitle>Secure Payments</CardTitle>
-              <CardDescription>
-                Integrated escrow system ensures safe transactions with Razorpay payment gateway
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2 hover:border-yellow-500 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
-                <Star className="w-6 h-6 text-yellow-600" />
-              </div>
-              <CardTitle>Reputation System</CardTitle>
-              <CardDescription>
-                Build trust with reviews, ratings, and badges. Earn recognition for helping others
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2 hover:border-pink-500 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mb-4">
-                <MessageCircle className="w-6 h-6 text-pink-600" />
-              </div>
-              <CardTitle>Real-time Chat</CardTitle>
-              <CardDescription>
-                Coordinate with neighbors through instant messaging and community discussions
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2 hover:border-indigo-500 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                <Sparkles className="w-6 h-6 text-indigo-600" />
-              </div>
-              <CardTitle>Privacy Focused</CardTitle>
-              <CardDescription>
-                Control your visibility with customizable privacy settings for each interaction
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* Stats Section */}
-        <div className="bg-blue-600 rounded-2xl p-8 text-white mb-16">
-          <div className="grid gap-8 md:grid-cols-3 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">1,000+</div>
-              <div className="text-blue-100">Active Communities</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">50,000+</div>
-              <div className="text-blue-100">Neighbors Connected</div>
+            <div className="space-y-3">
+              <div className="rounded-lg p-4 bg-gradient-to-br from-white/60 to-muted/10 border">
+                <h4 className="font-semibold">2. Post & discover requests</h4>
+                <p className="text-sm text-muted-foreground">Quickly request help or browse nearby requests.</p>
+              </div>
             </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">100,000+</div>
-              <div className="text-blue-100">Successful Helps</div>
+            <div className="space-y-3">
+              <div className="rounded-lg p-4 bg-gradient-to-br from-white/60 to-muted/10 border">
+                <h4 className="font-semibold">3. Secure payments & trust</h4>
+                <p className="text-sm text-muted-foreground">Escrow-powered payments and reputation keep everyone safe.</p>
+              </div>
             </div>
           </div>
-        </div>
+        </PageSection>
 
-        {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-12">
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to Strengthen Your Community?
-          </h3>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of neighbors who are already helping each other and building stronger communities.
-          </p>
-          <Button size="lg" onClick={() => router.push('/dashboard')} className="gap-2">
-            Start Exploring <ArrowRight className="w-4 h-4" />
-          </Button>
+        <PageSection title="Featured capabilities">
+          <div className="grid gap-6 md:grid-cols-3">
+            <PremiumCard>
+              <div className="flex items-start gap-3">
+                <div className="rounded-md bg-primary/10 p-2"><MessageCircle className="h-5 w-5 text-primary"/></div>
+                <div>
+                  <h5 className="font-semibold">Real-time chat</h5>
+                  <p className="text-sm text-muted-foreground">Coordinate instantly with neighbors and volunteers.</p>
+                </div>
+              </div>
+            </PremiumCard>
+
+            <PremiumCard>
+              <div className="flex items-start gap-3">
+                <div className="rounded-md bg-primary/10 p-2"><Shield className="h-5 w-5 text-primary"/></div>
+                <div>
+                  <h5 className="font-semibold">Escrow payments</h5>
+                  <p className="text-sm text-muted-foreground">Safety-first payments with dispute resolution.</p>
+                </div>
+              </div>
+            </PremiumCard>
+
+            <PremiumCard>
+              <div className="flex items-start gap-3">
+                <div className="rounded-md bg-primary/10 p-2"><Users className="h-5 w-5 text-primary"/></div>
+                <div>
+                  <h5 className="font-semibold">Reputation & badges</h5>
+                  <p className="text-sm text-muted-foreground">Recognize neighbors for reliable help and kindness.</p>
+                </div>
+              </div>
+            </PremiumCard>
+          </div>
+        </PageSection>
+
+        {/* Call to action */}
+        <div className="mt-10 bg-gradient-to-r from-primary/5 to-transparent rounded-2xl p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h3 className="text-2xl font-semibold">Ready to help your neighborhood?</h3>
+              <p className="text-sm text-muted-foreground">Join or create a community and start making an impact today.</p>
+            </div>
+            <div className="flex gap-3">
+              <Button size="lg" onClick={() => router.push('/dashboard')}>
+                Get Started <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => router.push('/communities/join')}>Join community</Button>
+            </div>
+          </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-50 border-t mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600">
-            <p>© 2025 KindKart. Building stronger communities, one neighbor at a time.</p>
-          </div>
+      <footer className="bg-background border-t mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-muted-foreground">
+          © {new Date().getFullYear()} KindKart — Building resilient communities together.
         </div>
       </footer>
     </div>

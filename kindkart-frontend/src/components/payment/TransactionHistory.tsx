@@ -47,9 +47,10 @@ export function TransactionHistory() {
     try {
       setIsLoading(true);
       const transactionsData = await api.payments.getTransactions();
-      setTransactions(transactionsData);
+      setTransactions(Array.isArray(transactionsData) ? transactionsData : []);
     } catch (error) {
-      console.error('Failed to load transactions:', error);
+      console.warn('Transactions unavailable (backend may be off):', error);
+      setTransactions([]);
     } finally {
       setIsLoading(false);
     }

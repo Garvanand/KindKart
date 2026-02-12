@@ -65,9 +65,10 @@ export function Leaderboard({ communityId, timeRange = 'month' }: LeaderboardPro
         });
       }
       
-      setLeaderboard(data);
+      setLeaderboard(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Failed to load leaderboard:', error);
+      console.warn('Leaderboard unavailable (backend may be off):', error);
+      setLeaderboard([]);
     } finally {
       setIsLoading(false);
     }

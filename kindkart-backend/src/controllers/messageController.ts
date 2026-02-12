@@ -1,62 +1,26 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db, generateId } from '../lib/db';
 
 interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    phone: string;
-  };
+  user?: { id: string; email: string; phone: string };
 }
 
 export const messageController = {
-  // Get messages for a specific request
-  getMessagesByRequest: async (req: AuthRequest, res: Response) => {
+  getMessagesByRequest: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
       const { requestId } = req.params;
 
-      // Verify user has access to this request
-      const request = await prisma.helpRequest.findUnique({
-        where: { id: requestId },
-        include: {
-          requester: { select: { id: true } },
-          helper: { select: { id: true } }
-        }
-      });
+      const request: any = db.prepare('SELECT * FROM help_requests WHERE id = ?').get(requestId);
+      if (!request) { res.status(404).json({ error: 'Request not found' }); return; }
 
-      if (!request) {
-        return res.status(404).json({ error: 'Request not found' });
-      }
+      const canAccess = request.requesterId === req.user.id || request.helperId === req.user.id;
+      if (!canAccess) { res.status(403).json({ error: 'Access denied' }); return; }
 
-      // Check if user is requester or helper
-      const canAccess = request.requester.id === req.user.id || 
-                       (request.helper && request.helper.id === req.user.id);
-
-      if (!canAccess) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-
-      // Get messages for this request
-      const messages = await prisma.message.findMany({
-        where: { requestId: requestId },
-        include: {
-          sender: {
-            select: {
-              id: true,
-              name: true,
-              profilePhoto: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'asc'
-        }
+      const rows: any[] = db.prepare('SELECT * FROM messages WHERE requestId = ? ORDER BY createdAt ASC').all(requestId);
+      const messages = rows.map((m: any) => {
+        const sender: any = db.prepare('SELECT id, name, profilePhoto FROM users WHERE id = ?').get(m.senderId);
+        return { ...m, sender };
       });
 
       res.json(messages);
@@ -66,147 +30,55 @@ export const messageController = {
     }
   },
 
-  // Send a message
-  sendMessage: async (req: AuthRequest, res: Response) => {
+  sendMessage: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
       const { requestId, content, receiverId } = req.body;
+      if (!requestId || !content || !receiverId) { res.status(400).json({ error: 'Missing required fields' }); return; }
 
-      if (!requestId || !content || !receiverId) {
-        return res.status(400).json({ error: 'Missing required fields' });
-      }
+      const request: any = db.prepare('SELECT * FROM help_requests WHERE id = ?').get(requestId);
+      if (!request) { res.status(404).json({ error: 'Request not found' }); return; }
 
-      // Verify user has access to this request
-      const request = await prisma.helpRequest.findUnique({
-        where: { id: requestId },
-        include: {
-          requester: { select: { id: true } },
-          helper: { select: { id: true } }
-        }
-      });
+      const canAccess = request.requesterId === req.user.id || request.helperId === req.user.id;
+      if (!canAccess) { res.status(403).json({ error: 'Access denied' }); return; }
 
-      if (!request) {
-        return res.status(404).json({ error: 'Request not found' });
-      }
+      const expectedReceiver = request.requesterId === req.user.id ? request.helperId : request.requesterId;
+      if (receiverId !== expectedReceiver) { res.status(400).json({ error: 'Invalid receiver' }); return; }
 
-      // Check if user is requester or helper
-      const canAccess = request.requester.id === req.user.id || 
-                       (request.helper && request.helper.id === req.user.id);
+      const id = generateId();
+      db.prepare("INSERT INTO messages (id, senderId, receiverId, requestId, content, messageType, attachments) VALUES (?, ?, ?, ?, ?, 'text', '[]')").run(id, req.user.id, receiverId, requestId, content);
 
-      if (!canAccess) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
+      const message: any = db.prepare('SELECT * FROM messages WHERE id = ?').get(id);
+      const sender: any = db.prepare('SELECT id, name, profilePhoto FROM users WHERE id = ?').get(req.user.id);
+      message.sender = sender;
 
-      // Verify receiver is the other participant
-      const expectedReceiver = request.requester.id === req.user.id ? 
-        request.helper?.id : request.requester.id;
-
-      if (receiverId !== expectedReceiver) {
-        return res.status(400).json({ error: 'Invalid receiver' });
-      }
-
-      // Create the message
-      const message = await prisma.message.create({
-        data: {
-          senderId: req.user.id,
-          receiverId: receiverId,
-          requestId: requestId,
-          content: content,
-          messageType: 'text'
-        },
-        include: {
-          sender: {
-            select: {
-              id: true,
-              name: true,
-              profilePhoto: true
-            }
-          }
-        }
-      });
-
-      res.status(201).json({
-        message: 'Message sent successfully',
-        data: message
-      });
+      res.status(201).json({ message: 'Message sent successfully', data: message });
     } catch (error) {
       console.error('Send message error:', error);
       res.status(500).json({ error: 'Failed to send message' });
     }
   },
 
-  // Get user's conversations
-  getUserConversations: async (req: AuthRequest, res: Response) => {
+  getUserConversations: async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
+      if (!req.user) { res.status(401).json({ error: 'Authentication required' }); return; }
 
-      // Get all requests where user is either requester or helper
-      const requests = await prisma.helpRequest.findMany({
-        where: {
-          OR: [
-            { requesterId: req.user.id },
-            { helperId: req.user.id }
-          ],
-          status: {
-            in: ['accepted', 'in_progress']
-          }
-        },
-        include: {
-          requester: {
-            select: {
-              id: true,
-              name: true,
-              profilePhoto: true
-            }
-          },
-          helper: {
-            select: {
-              id: true,
-              name: true,
-              profilePhoto: true
-            }
-          },
-          messages: {
-            take: 1,
-            orderBy: {
-              createdAt: 'desc'
-            },
-            include: {
-              sender: {
-                select: {
-                  id: true,
-                  name: true
-                }
-              }
-            }
-          }
-        },
-        orderBy: {
-          updatedAt: 'desc'
-        }
-      });
+      const requests: any[] = db.prepare(
+        "SELECT * FROM help_requests WHERE (requesterId = ? OR helperId = ?) AND status IN ('accepted', 'in_progress') ORDER BY updatedAt DESC"
+      ).all(req.user.id, req.user.id);
 
-      // Format conversations
-      const conversations = requests.map(request => {
-        const otherUser = request.requester.id === req.user!.id ? 
-          request.helper : request.requester;
+      const conversations = requests.map((request: any) => {
+        const requester: any = db.prepare('SELECT id, name, profilePhoto FROM users WHERE id = ?').get(request.requesterId);
+        const helper: any = request.helperId ? db.prepare('SELECT id, name, profilePhoto FROM users WHERE id = ?').get(request.helperId) : null;
+        const otherUser = request.requesterId === req.user!.id ? helper : requester;
 
-        const lastMessage = request.messages[0];
+        const lastMsg: any = db.prepare('SELECT m.*, u.name as senderName FROM messages m JOIN users u ON m.senderId = u.id WHERE m.requestId = ? ORDER BY m.createdAt DESC LIMIT 1').get(request.id);
 
         return {
           requestId: request.id,
           requestTitle: request.title,
-          otherUser: otherUser,
-          lastMessage: lastMessage ? {
-            content: lastMessage.content,
-            senderName: lastMessage.sender.name,
-            createdAt: lastMessage.createdAt
-          } : null,
+          otherUser,
+          lastMessage: lastMsg ? { content: lastMsg.content, senderName: lastMsg.senderName, createdAt: lastMsg.createdAt } : null,
           updatedAt: request.updatedAt
         };
       });

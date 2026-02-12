@@ -13,12 +13,7 @@ export default function CreateRequestPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
   const [createdRequest, setCreatedRequest] = useState<any>(null);
-  const [communityId, setCommunityId] = useState<string>('');
-
-  // Get community ID from params
-  useState(() => {
-    setCommunityId(params.id as string);
-  });
+  const communityId = params.id as string;
 
   // Redirect if not authenticated
   if (!isAuthenticated || !user) {

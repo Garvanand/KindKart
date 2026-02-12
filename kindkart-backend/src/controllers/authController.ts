@@ -1,118 +1,76 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-
-const prisma = new PrismaClient();
+import { storeOTP, verifyOTP } from '../lib/redis';
+import { env } from '../lib/env';
+import {
+  createGuestUser,
+  createUser,
+  findUserByIdentifier,
+  getUserById,
+  updateUser,
+} from '../db/users.db';
 
 export const authController = {
-  // Send OTP for authentication
-  sendOTP: async (req: Request, res: Response) => {
+  sendOTP: async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, phone } = req.body;
+      if (!email && !phone) { res.status(400).json({ error: 'Email or phone required' }); return; }
 
-      if (!email && !phone) {
-        return res.status(400).json({ error: 'Email or phone required' });
-      }
-
-      // Generate 6-digit OTP
+      const identifier = email || phone;
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const stored = await storeOTP(identifier, otp, 300);
+      if (!stored) console.log(`[DEV] OTP for ${identifier}: ${otp}`);
 
-      // TODO: Integrate with Firebase Auth for OTP sending
-      // For now, we'll just log the OTP (remove in production)
-      console.log(`OTP for ${email || phone}: ${otp}`);
-
-      // Store OTP temporarily (you might want to use Redis for this)
-      // For now, we'll just return success
-      
-      res.json({ 
-        message: 'OTP sent successfully',
-        // Remove this in production
-        otp: otp
-      });
+      const isDevelopment = env.NODE_ENV !== 'production';
+      res.json({ message: 'OTP sent successfully', ...(isDevelopment && { otp }) });
     } catch (error) {
       console.error('Send OTP error:', error);
       res.status(500).json({ error: 'Failed to send OTP' });
     }
   },
 
-  // Verify OTP and create/authenticate user
-  verifyOTP: async (req: Request, res: Response) => {
+  verifyOTP: async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, phone, otp, name, age, qualification, certifications } = req.body;
+      if (!otp) { res.status(400).json({ error: 'OTP required' }); return; }
 
-      if (!otp) {
-        return res.status(400).json({ error: 'OTP required' });
-      }
+      const identifier = email || phone;
+      if (!identifier) { res.status(400).json({ error: 'Email or phone required' }); return; }
+      if (otp.length !== 6 || isNaN(parseInt(otp))) { res.status(400).json({ error: 'Invalid OTP format' }); return; }
 
-      // TODO: Verify OTP with Firebase Auth
-      // For now, we'll accept any 6-digit OTP
-      if (otp.length !== 6 || isNaN(parseInt(otp))) {
-        return res.status(400).json({ error: 'Invalid OTP format' });
-      }
+      const isValidOTP = await verifyOTP(identifier, otp);
+      if (!isValidOTP) { res.status(401).json({ error: 'Invalid or expired OTP' }); return; }
 
       // Check if user exists
-      let user = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { email: email || undefined },
-            { phone: phone || undefined }
-          ]
-        }
-      });
+      let user = await findUserByIdentifier(email, phone);
 
-      // Create user if doesn't exist
       if (!user) {
-        if (!name) {
-          return res.status(400).json({ error: 'Name required for new users' });
-        }
-
-        user = await prisma.user.create({
-          data: {
-            email: email || '',
-            phone: phone || '',
-            name,
-            age: age ? parseInt(age) : null,
-            qualification: qualification || null,
-            certifications: certifications || [],
-            isVerified: true
-          }
+        if (!name) { res.status(400).json({ error: 'Name required for new users' }); return; }
+        user = await createUser({
+          email,
+          phone,
+          name,
+          age: age ? parseInt(age) : null,
+          qualification: qualification || null,
+          certifications: certifications || [],
+          isVerified: true,
         });
       } else {
-        // Update existing user
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            isVerified: true,
-            ...(name && { name }),
-            ...(age && { age: parseInt(age) }),
-            ...(qualification && { qualification }),
-            ...(certifications && { certifications })
-          }
+        user = await updateUser(user.id, {
+          name: name ?? user.name,
+          age: age ? parseInt(age) : user.age,
+          qualification: qualification ?? user.qualification,
+          certifications: certifications ?? user.certifications,
+          isVerified: true,
         });
       }
 
-      // Generate JWT tokens
-      const accessToken = jwt.sign(
-        { userId: user.id, email: user.email },
-        process.env.JWT_SECRET!,
-        { expiresIn: '24h' }
-      );
-
-      const refreshToken = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET!,
-        { expiresIn: '7d' }
-      );
+      const accessToken = jwt.sign({ userId: user.id, email: user.email }, env.JWT_SECRET, { expiresIn: '24h' });
+      const refreshToken = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn: '7d' });
 
       res.json({
         message: 'Authentication successful',
-        user: {
-          id: user.id,
-          email: user.email,
-          phone: user.phone,
-          name: user.name,
-          isVerified: user.isVerified
-        },
+        user: { id: user.id, email: user.email, phone: user.phone, name: user.name, isVerified: !!user.isVerified },
         accessToken,
         refreshToken
       });
@@ -122,34 +80,17 @@ export const authController = {
     }
   },
 
-  // Refresh access token
-  refreshToken: async (req: Request, res: Response) => {
+  refreshToken: async (req: Request, res: Response): Promise<void> => {
     try {
       const { refreshToken } = req.body;
+      if (!refreshToken) { res.status(400).json({ error: 'Refresh token required' }); return; }
 
-      if (!refreshToken) {
-        return res.status(400).json({ error: 'Refresh token required' });
-      }
+      const decoded = jwt.verify(refreshToken, env.JWT_SECRET) as any;
+      const user = await getUserById(decoded.userId);
 
-      const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
-      
-      // Verify user still exists
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
-        select: { id: true, email: true, isVerified: true }
-      });
+      if (!user || !user.isVerified) { res.status(401).json({ error: 'Invalid refresh token' }); return; }
 
-      if (!user || !user.isVerified) {
-        return res.status(401).json({ error: 'Invalid refresh token' });
-      }
-
-      // Generate new access token
-      const accessToken = jwt.sign(
-        { userId: user.id, email: user.email },
-        process.env.JWT_SECRET!,
-        { expiresIn: '24h' }
-      );
-
+      const accessToken = jwt.sign({ userId: user.id, email: user.email }, env.JWT_SECRET, { expiresIn: '24h' });
       res.json({ accessToken });
     } catch (error) {
       console.error('Refresh token error:', error);
@@ -157,10 +98,26 @@ export const authController = {
     }
   },
 
-  // Logout (client-side token removal)
-  logout: async (req: Request, res: Response) => {
-    // In a stateless JWT system, logout is handled client-side
-    // You might want to implement a token blacklist for enhanced security
+  guestLogin: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const guest = await createGuestUser();
+
+      const accessToken = jwt.sign({ userId: guest.id, email: guest.email, isGuest: true }, env.JWT_SECRET, { expiresIn: '24h' });
+      const refreshToken = jwt.sign({ userId: guest.id, isGuest: true }, env.JWT_SECRET, { expiresIn: '7d' });
+
+      res.json({
+        message: 'Guest session created',
+        user: { id: guest.id, email: guest.email, phone: guest.phone, name: guest.name, isVerified: guest.isVerified, isGuest: true },
+        accessToken,
+        refreshToken
+      });
+    } catch (error) {
+      console.error('Guest login error:', error);
+      res.status(500).json({ error: 'Failed to create guest session' });
+    }
+  },
+
+  logout: async (_req: Request, res: Response): Promise<void> => {
     res.json({ message: 'Logged out successfully' });
   }
 };

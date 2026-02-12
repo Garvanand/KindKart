@@ -50,6 +50,11 @@ export default function AuthPage() {
     }
   };
 
+  const handleGuestLogin = () => {
+    // Guest users skip profile setup and go directly to dashboard
+    router.push('/dashboard');
+  };
+
   // Show loading state until fully hydrated
   if (!isFullyHydrated) {
     return (
@@ -66,7 +71,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {authStep === 'login' && (
-          <LoginForm onSuccess={handleLoginSuccess} />
+          <LoginForm onSuccess={handleLoginSuccess} onGuestLogin={handleGuestLogin} />
         )}
         
         {authStep === 'profile' && (

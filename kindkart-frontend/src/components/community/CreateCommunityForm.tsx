@@ -60,7 +60,10 @@ export function CreateCommunityForm({ onSuccess }: CreateCommunityFormProps) {
       
       reset();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create community');
+      const msg = err instanceof Error ? err.message : 'Failed to create community';
+      setError(msg.includes('Unable to connect') || msg.includes('Failed to fetch')
+        ? 'Server is not available. Start the backend to create communities.'
+        : msg);
     } finally {
       setIsLoading(false);
     }

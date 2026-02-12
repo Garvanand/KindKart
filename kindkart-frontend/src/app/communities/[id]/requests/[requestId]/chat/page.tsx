@@ -93,16 +93,20 @@ export default function ChatPage() {
         setOtherUser(requestData.requester);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load request');
+      const msg = err instanceof Error ? err.message : 'Failed to load request';
+      setError(msg.includes('Unable to connect') || msg.includes('Failed to fetch')
+        ? 'Server is not available. Start the backend to load this chat.'
+        : msg);
     }
   };
 
   const loadMessages = async () => {
     try {
       const messagesData = await api.messages.getByRequest(requestId);
-      setMessages(messagesData);
+      setMessages(Array.isArray(messagesData) ? messagesData : []);
     } catch (err) {
-      console.error('Failed to load messages:', err);
+      console.warn('Messages unavailable (backend may be off):', err);
+      setMessages([]);
     } finally {
       setIsLoading(false);
     }

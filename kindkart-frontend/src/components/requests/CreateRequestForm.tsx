@@ -76,7 +76,10 @@ export function CreateRequestForm({ communityId, onSuccess }: CreateRequestFormP
       reset();
       setSelectedCategory('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create request');
+      const msg = err instanceof Error ? err.message : 'Failed to create request';
+      setError(msg.includes('Unable to connect') || msg.includes('Failed to fetch')
+        ? 'Server is not available. Start the backend to create requests.'
+        : msg);
     } finally {
       setIsLoading(false);
     }

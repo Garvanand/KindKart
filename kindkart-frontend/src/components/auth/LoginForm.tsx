@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
@@ -23,15 +24,59 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onSuccess: () => void;
+  onGuestLogin?: () => void;
 }
 
-export function LoginForm({ onSuccess }: LoginFormProps) {
+export function LoginForm({ onSuccess, onGuestLogin }: LoginFormProps) {
   const [step, setStep] = useState<'input' | 'otp'>('input');
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [error, setError] = useState('');
 
   const { setAuth, setLoading } = useAuthStore();
+
+  const handleGuestLogin = async () => {
+    setIsGuestLoading(true);
+    setError('');
+
+    try {
+      const response: any = await api.auth.guestLogin();
+      const guestUser = { ...response.user, isGuest: true };
+      setAuth(guestUser, response.accessToken, response.refreshToken);
+      if (onGuestLogin) {
+        onGuestLogin();
+      } else {
+        onSuccess();
+      }
+    } catch (err) {
+      console.warn('Guest login (backend unavailable), using offline guest:', err);
+      const errorMessage = err instanceof Error ? err.message : '';
+      const isOffline = errorMessage.includes('Unable to connect') || errorMessage.includes('Failed to fetch');
+
+      // Work without backend: create local guest user so app is still usable
+      if (isOffline) {
+        const offlineGuest = {
+          id: `guest-${Date.now()}`,
+          email: '',
+          phone: '',
+          name: 'Guest',
+          isVerified: false,
+          isGuest: true,
+        };
+        setAuth(offlineGuest, 'guest-offline', 'guest-offline');
+        if (onGuestLogin) {
+          onGuestLogin();
+        } else {
+          onSuccess();
+        }
+      } else {
+        setError(errorMessage || 'Failed to create guest session');
+      }
+    } finally {
+      setIsGuestLoading(false);
+    }
+  };
 
   const {
     register,
@@ -91,6 +136,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {isLoading && <LoadingSpinner size="sm" text="Verifying..." />}
           <div className="space-y-2">
             <Label htmlFor="otp">Verification Code</Label>
             <Input
@@ -168,9 +214,31 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             <p className="text-sm text-red-600">{error}</p>
           )}
 
-          <Button type="submit" disabled={isLoading} className="w-full">
+          <Button type="submit" disabled={isLoading || isGuestLoading} className="w-full">
             {isLoading ? 'Sending Code...' : 'Send Verification Code'}
           </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">Or</span>
+            </div>
+          </div>
+
+          <Button 
+            type="button"
+            variant="outline" 
+            onClick={handleGuestLogin}
+            disabled={isLoading || isGuestLoading}
+            className="w-full"
+          >
+            {isGuestLoading ? 'Creating Guest Session...' : 'Continue as Guest'}
+          </Button>
+          <p className="text-xs text-center text-gray-500">
+            Guest users have limited access. Sign up for full features.
+          </p>
         </form>
       </CardContent>
     </Card>

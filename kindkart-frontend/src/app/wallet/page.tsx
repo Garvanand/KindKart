@@ -3,10 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { AppShell, PageContainer } from '@/components/layout';
 import { WalletCard } from '@/components/payment/WalletCard';
 import { TransactionHistory } from '@/components/payment/TransactionHistory';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CreditCard, TrendingUp } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AIAssistant } from '@/components/AIAssistant';
+import { CreditCard, TrendingUp } from 'lucide-react';
 
 export default function WalletPage() {
   const router = useRouter();
@@ -25,163 +29,115 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/dashboard')}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900">Wallet</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <CreditCard className="w-4 h-4 mr-2" />
-                Add Money
-              </Button>
-              <Button size="sm">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Withdraw
-              </Button>
-            </div>
+    <AppShell>
+      <PageContainer className="py-6 lg:py-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Wallet</h1>
+            <p className="text-sm text-muted-foreground">Balance and transactions</p>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab Navigation */}
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('wallet')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'wallet'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Wallet Overview
-              </button>
-              <button
-                onClick={() => setActiveTab('transactions')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'transactions'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Transaction History
-              </button>
-            </nav>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <CreditCard className="mr-2 h-4 w-4" />
+              Add money
+            </Button>
+            <Button size="sm">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Withdraw
+            </Button>
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {activeTab === 'wallet' ? (
-              <div className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'wallet' | 'transactions')} className="mb-8">
+          <TabsList className="mb-4">
+            <TabsTrigger value="wallet">Wallet overview</TabsTrigger>
+            <TabsTrigger value="transactions">Transaction history</TabsTrigger>
+          </TabsList>
+          <TabsContent value="wallet" className="mt-0">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              <div className="lg:col-span-2 space-y-6">
                 <WalletCard userId={user.id} />
-                
-                {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <TrendingUp className="w-6 h-6 text-green-600" />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Card>
+                    <CardContent className="flex items-center gap-4 p-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/15">
+                        <TrendingUp className="h-5 w-5 text-success" />
                       </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">This Month</p>
-                        <p className="text-2xl font-semibold text-gray-900">₹0</p>
+                      <div>
+                        <p className="text-sm text-muted-foreground">This month</p>
+                        <p className="text-xl font-semibold text-foreground">₹0</p>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <CreditCard className="w-6 h-6 text-blue-600" />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="flex items-center gap-4 p-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                        <CreditCard className="h-5 w-5 text-primary" />
                       </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">Active Requests</p>
-                        <p className="text-2xl font-semibold text-gray-900">0</p>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Active requests</p>
+                        <p className="text-xl font-semibold text-foreground">0</p>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-purple-100 rounded-lg">
-                        <TrendingUp className="w-6 h-6 text-purple-600" />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="flex items-center gap-4 p-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                        <TrendingUp className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">Completed</p>
-                        <p className="text-2xl font-semibold text-gray-900">0</p>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Completed</p>
+                        <p className="text-xl font-semibold text-foreground">0</p>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
-            ) : (
-              <TransactionHistory />
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Security</h3>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <CreditCard className="w-5 h-5 text-green-600" />
+              <Card className="h-fit">
+                <CardHeader>
+                  <CardTitle className="text-base">Payment security</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-success/15">
+                      <CreditCard className="h-4 w-4 text-success" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground">Escrow protection</h4>
+                      <p className="text-xs text-muted-foreground">Payments held until work is completed</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">Escrow Protection</h4>
-                    <p className="text-sm text-gray-600">
-                      All payments are held securely until work is completed
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground">Secure processing</h4>
+                      <p className="text-xs text-muted-foreground">Razorpay, bank-level security</p>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground">Dispute resolution</h4>
+                      <p className="text-xs text-muted-foreground">Fair process for payment issues</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">Secure Processing</h4>
-                    <p className="text-sm text-gray-600">
-                      Powered by Razorpay with bank-level security
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <CreditCard className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">Dispute Resolution</h4>
-                    <p className="text-sm text-gray-600">
-                      Fair resolution process for any payment issues
-                    </p>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
+          </TabsContent>
+          <TabsContent value="transactions" className="mt-0">
+            <TransactionHistory />
+          </TabsContent>
+        </Tabs>
+
+        <div className="mt-8">
+          <AIAssistant context="wallet, payments, and transactions" />
         </div>
-      </main>
-    </div>
+      </PageContainer>
+    </AppShell>
   );
 }
