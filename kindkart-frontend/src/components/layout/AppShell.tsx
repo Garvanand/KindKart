@@ -9,14 +9,12 @@ import { GlobalSearchModal } from './GlobalSearchModal';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PanelLeftClose, PanelLeft } from 'lucide-react';
 
 interface AppShellProps {
   children: React.ReactNode;
-  /** Optional community ID to show community-specific sidebar links */
   communityId?: string | null;
-  /** Hide sidebar (e.g. on auth page) */
   hideSidebar?: boolean;
-  /** Extra class for main content area */
   contentClassName?: string;
 }
 
@@ -31,12 +29,10 @@ export function AppShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Extract community ID from pathname when inside /communities/[id]/...
   const resolvedCommunityId =
     communityId ??
     (pathname.match(/^\/communities\/([^/]+)/)?.[1] ?? null);
 
-  // Close sidebar on route change (mobile)
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
@@ -52,10 +48,9 @@ export function AppShell({
       <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
 
       <div className="flex flex-1">
-        {/* Desktop sidebar - hidden on mobile with smooth animation */}
         {!hideSidebar && (
           <>
-            {/* Sidebar backdrop for mobile */}
+            {/* Mobile backdrop */}
             <AnimatePresence>
               {sidebarOpen && (
                 <motion.div
@@ -63,7 +58,7 @@ export function AppShell({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+                  className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
                   onClick={() => setSidebarOpen(false)}
                   aria-hidden
                 />
@@ -71,67 +66,60 @@ export function AppShell({
             </AnimatePresence>
 
             {/* Desktop sidebar */}
-            <motion.div
+            <div
               className={cn(
-                'fixed inset-y-0 left-0 z-50 border-r bg-card transition-all duration-300 ease-out hidden lg:flex flex-col',
-                'pt-16',
-                sidebarCollapsed ? 'w-20' : 'w-56'
+                'fixed inset-y-0 left-0 z-50 border-r border-border/50 transition-all duration-300 ease-out hidden lg:flex flex-col',
+                'pt-16 bg-card/95 backdrop-blur-xl',
+                sidebarCollapsed ? 'w-[72px]' : 'w-60'
               )}
-              initial={{ x: 0 }}
-              animate={{ x: 0 }}
             >
               <SidebarNav
                 communityId={resolvedCommunityId}
-                className={cn('flex-1 overflow-y-auto scrollbar-thin', sidebarCollapsed && 'hidden')}
+                className="flex-1 overflow-y-auto scrollbar-thin"
                 collapsed={sidebarCollapsed}
               />
-              {/* Collapse button */}
-              <div className="border-t p-2 flex justify-center">
+              <div className="border-t border-border/50 p-2 flex justify-center">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="h-9 w-9"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                   title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 >
-                  <motion.div
-                    animate={{ rotate: sidebarCollapsed ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </motion.div>
+                  {sidebarCollapsed ? (
+                    <PanelLeft className="h-4 w-4" />
+                  ) : (
+                    <PanelLeftClose className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Mobile sidebar with slide animation */}
+            {/* Mobile sidebar */}
             <AnimatePresence>
-              <motion.div
-                className={cn(
-                  'fixed inset-y-0 left-0 z-50 w-56 border-r bg-card lg:hidden',
-                  'pt-16'
-                )}
-                initial={{ x: -224 }}
-                animate={{ x: sidebarOpen ? 0 : -224 }}
-                exit={{ x: -224 }}
-                transition={{ duration: 0.3, ease: "smooth-bounce" }}
-              >
-                <SidebarNav
-                  communityId={resolvedCommunityId}
-                  className="h-[calc(100vh-4rem)] overflow-y-auto scrollbar-thin"
-                />
-              </motion.div>
+              {sidebarOpen && (
+                <motion.div
+                  className="fixed inset-y-0 left-0 z-50 w-60 border-r border-border/50 bg-card/95 backdrop-blur-xl lg:hidden pt-16"
+                  initial={{ x: -240 }}
+                  animate={{ x: 0 }}
+                  exit={{ x: -240 }}
+                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                >
+                  <SidebarNav
+                    communityId={resolvedCommunityId}
+                    className="h-[calc(100vh-4rem)] overflow-y-auto scrollbar-thin"
+                  />
+                </motion.div>
+              )}
             </AnimatePresence>
           </>
         )}
 
-        {/* Main content - offset when sidebar is visible */}
+        {/* Main content */}
         <main
           className={cn(
             'flex-1 flex flex-col min-h-[calc(100vh-4rem)]',
-            !hideSidebar && (sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-56'),
+            !hideSidebar && (sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-60'),
             contentClassName
           )}
         >
@@ -146,10 +134,7 @@ export function AppShell({
         </main>
       </div>
 
-      {/* Mobile bottom tabs - only when sidebar layout is used */}
       {!hideSidebar && <MobileTabNav />}
-
-      {/* Spacer for mobile bottom nav so content isn't hidden behind it */}
       {!hideSidebar && <div className="h-16 md:hidden" />}
     </div>
   );

@@ -7,18 +7,19 @@ import { useHydration } from '@/hooks/useHydration';
 import { api } from '@/lib/api';
 import { AppShell } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Users, HelpCircle, MessageCircle, Trophy, Wallet, ArrowRight, TrendingUp, Activity, Heart, Zap, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AIAssistant } from '@/components/AIAssistant';
-import { DemoMode } from '@/components/DemoMode';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { StatCard, PremiumCard, Pulse, PageHeader, PageSection, ContainerGrid, Badge } from '@/components/ui-kit';
+import { StatCard, PremiumCard, PageHeader, PageSection, ContainerGrid, Badge } from '@/components/ui-kit';
 import { NeighborhoodActivityPulse } from '@/components/dashboard/NeighborhoodActivityPulse';
 import { TrustScoreVisualization } from '@/components/dashboard/TrustScoreVisualization';
 import { TopHelpersWidget } from '@/components/dashboard/TopHelpersWidget';
 import { CommunityHealthScore } from '@/components/dashboard/CommunityHealthScore';
+import { TrustRadar } from '@/components/dashboard/TrustRadar';
+import {
+  Plus, Users, HelpCircle, MessageCircle, Trophy, ArrowRight,
+  Activity, Zap, Shield, AlertTriangle, Calendar, Target
+} from 'lucide-react';
 
 interface Community {
   id: string;
@@ -51,7 +52,7 @@ export default function Dashboard() {
           setCommunities(Array.isArray(data) ? data : []);
         }
       } catch (error) {
-        console.warn('Communities unavailable (backend may be off):', error);
+        console.warn('Communities unavailable:', error);
         setCommunities([]);
       } finally {
         setIsLoading(false);
@@ -64,8 +65,8 @@ export default function Dashboard() {
     return (
       <AppShell>
         <div className="flex min-h-screen items-center justify-center bg-background">
-          <div className="text-center">
-            <Skeleton className="mx-auto mb-4 h-8 w-32" />
+          <div className="text-center space-y-4">
+            <Skeleton className="mx-auto h-8 w-32" />
             <Skeleton className="h-4 w-48" />
           </div>
         </div>
@@ -74,206 +75,166 @@ export default function Dashboard() {
   }
 
   const quickActions = [
-    { icon: Plus, label: 'Create Request', href: '/requests/create', color: 'from-blue-500 to-cyan-500' },
-    { icon: HelpCircle, label: 'Browse Requests', href: '/requests', color: 'from-purple-500 to-pink-500' },
-    { icon: MessageCircle, label: 'Messages', href: '/chat', color: 'from-green-500 to-emerald-500' },
-    { icon: Users, label: 'Community', href: '/communities', color: 'from-orange-500 to-red-500' },
+    { icon: Plus, label: 'Create Request', desc: 'Ask for help', href: '/requests/create', color: 'from-blue-500 to-cyan-500' },
+    { icon: HelpCircle, label: 'Browse Requests', desc: 'Help neighbors', href: '/requests', color: 'from-purple-500 to-pink-500' },
+    { icon: MessageCircle, label: 'Messages', desc: 'Chat with helpers', href: '/chat', color: 'from-green-500 to-emerald-500' },
+    { icon: Users, label: 'Community', desc: 'Manage groups', href: '/communities/join', color: 'from-orange-500 to-red-500' },
   ];
 
   return (
     <AppShell>
       <div className="min-h-screen bg-background">
-        {/* Premium Page Header */}
         <PageHeader
           title={`Welcome, ${user?.name?.split(' ')[0] || 'Neighbor'}`}
-          description={`${communities.length} ${communities.length === 1 ? 'community' : 'communities'} • Mission Control Active`}
+          description={`${communities.length} ${communities.length === 1 ? 'community' : 'communities'} \u2022 Mission Control Active`}
           icon={<Activity className="h-6 w-6" />}
           actions={
-            <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Request
+            <Button size="sm" className="gap-2" onClick={() => router.push('/requests/create')}>
+              <Plus className="h-4 w-4" /> New Request
             </Button>
           }
         />
 
-        {/* Main Content */}
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {/* Hero Section - Neighborhood Activity Pulse */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+          {/* Neighborhood Activity Pulse */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <NeighborhoodActivityPulse />
           </motion.div>
 
-          {/* Stats Row - Mission Control Metrics */}
-          <PageSection
-            title="Mission Control"
-            subtitle="Your neighborhood at a glance"
-            noBorder
-            className="mb-8"
-          >
+          {/* Stats Row */}
+          <PageSection title="Mission Control" subtitle="Your neighborhood at a glance" noBorder>
             <ContainerGrid columns={4}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-              >
-                <StatCard
-                  label="Active Requests"
-                  value="12"
-                  icon={<HelpCircle className="h-5 w-5" />}
-                  trend={{ direction: 'up', value: 23 }}
-                  color="primary"
-                />
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.15 }}
-              >
-                <StatCard
-                  label="Completed Today"
-                  value="8"
-                  icon={<Zap className="h-5 w-5" />}
-                  trend={{ direction: 'up', value: 15 }}
-                  color="success"
-                />
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-              >
-                <StatCard
-                  label="Community Members"
-                  value="547"
-                  icon={<Users className="h-5 w-5" />}
-                  trend={{ direction: 'up', value: 8 }}
-                  color="info"
-                />
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.25 }}
-              >
-                <StatCard
-                  label="Your Reputation"
-                  value="4.8"
-                  icon={<Trophy className="h-5 w-5" />}
-                  color="warning"
-                />
-              </motion.div>
+              {[
+                { label: 'Active Requests', value: '12', icon: <HelpCircle className="h-5 w-5" />, trend: { direction: 'up' as const, value: 23 }, color: 'primary' as const },
+                { label: 'Completed Today', value: '8', icon: <Zap className="h-5 w-5" />, trend: { direction: 'up' as const, value: 15 }, color: 'success' as const },
+                { label: 'Community Members', value: '547', icon: <Users className="h-5 w-5" />, trend: { direction: 'up' as const, value: 8 }, color: 'info' as const },
+                { label: 'Your Reputation', value: '4.8', icon: <Trophy className="h-5 w-5" />, color: 'warning' as const },
+              ].map((stat, i) => (
+                <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}>
+                  <StatCard {...stat} />
+                </motion.div>
+              ))}
             </ContainerGrid>
           </PageSection>
 
-          {/* Three Column Layout - Analytics & Insights */}
-          <div className="grid gap-6 lg:grid-cols-3 mb-8">
-            {/* Column 1: Trust Score & Top Helpers */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <TrustScoreVisualization />
+          {/* Main Grid - Trust Radar + Community Health + Top Helpers */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
+              <TrustRadar trustScore={92} communityVibe={87} goodDeeds={34} suspiciousAlerts={1} />
             </motion.div>
-
-            {/* Column 2: Community Health */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.35 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }}>
               <CommunityHealthScore />
             </motion.div>
-
-            {/* Column 3: Top Helpers */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-            >
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
               <TopHelpersWidget />
             </motion.div>
           </div>
 
-          Quick Actions
-          <PageSection
-            title="Quick Actions"
-            noBorder
-            className="mb-8"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Urgent Requests + Emergency Status */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+              <PremiumCard className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertTriangle className="h-5 w-5 text-amber-400" />
+                  <h3 className="font-semibold text-sm">Urgent Requests</h3>
+                  <Badge variant="warning" className="ml-auto">3 Active</Badge>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { title: 'Medical Emergency - First Aid', location: 'Block A', time: '15 min ago', urgency: 'emergency' },
+                    { title: 'Plumbing leak - urgent fix needed', location: 'Block C', time: '32 min ago', urgency: 'high' },
+                    { title: 'Lost pet - Golden Retriever', location: 'Park Area', time: '1 hour ago', urgency: 'high' },
+                  ].map((req, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer">
+                      <div className={cn('h-2 w-2 rounded-full flex-shrink-0', req.urgency === 'emergency' ? 'bg-red-400 animate-pulse' : 'bg-amber-400')} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{req.title}</p>
+                        <p className="text-xs text-muted-foreground">{req.location} &middot; {req.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PremiumCard>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <PremiumCard className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Shield className="h-5 w-5 text-emerald-400" />
+                  <h3 className="font-semibold text-sm">Emergency Status</h3>
+                  <Badge variant="success" className="ml-auto">All Clear</Badge>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                    <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <Shield className="h-5 w-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">No active emergencies</p>
+                      <p className="text-xs text-muted-foreground">Last incident: 3 days ago &middot; Resolved</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 rounded-lg bg-muted/20 text-center">
+                      <p className="text-lg font-bold text-foreground">24</p>
+                      <p className="text-[10px] text-muted-foreground">Responders Online</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/20 text-center">
+                      <p className="text-lg font-bold text-foreground">2.1m</p>
+                      <p className="text-[10px] text-muted-foreground">Avg Response Time</p>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => router.push('/safety')}>
+                    <Shield className="h-4 w-4 mr-2" /> Safety Center
+                  </Button>
+                </div>
+              </PremiumCard>
+            </motion.div>
+          </div>
+
+          {/* Quick Actions */}
+          <PageSection title="Quick Actions" noBorder>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {quickActions.map((action, idx) => (
-                <motion.div
-                  key={action.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.4 + idx * 0.05 }}
-                >
-                  <PremiumCard interactive elevated>
-                    <Button
-                      variant="ghost"
-                      className="w-full h-auto p-4 flex flex-col items-start gap-3 justify-start hover:bg-primary/10"
-                      onClick={() => router.push(action.href)}
-                    >
-                      <div className={cn(
-                        'h-10 w-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white',
-                        `bg-gradient-to-br ${action.color}`
-                      )}>
-                        <action.icon className="h-5 w-5" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-semibold text-foreground">{action.label}</p>
-                        <p className="text-xs text-muted-foreground">Click to get started</p>
-                      </div>
-                      <ArrowRight className="h-4 w-4 ml-auto text-muted-foreground group-hover:text-foreground" />
-                    </Button>
+                <motion.div key={action.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + idx * 0.05 }}>
+                  <PremiumCard interactive elevated className="p-4 cursor-pointer" onClick={() => router.push(action.href)}>
+                    <div className={cn('h-10 w-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white mb-3', action.color)}>
+                      <action.icon className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm font-semibold">{action.label}</p>
+                    <p className="text-xs text-muted-foreground">{action.desc}</p>
                   </PremiumCard>
                 </motion.div>
               ))}
             </div>
           </PageSection>
 
-          {/* Communities Section */}
-          {communities.length > 0 && (
-            <PageSection
-              title="Your Communities"
-              subtitle={`Active in ${communities.length} ${communities.length === 1 ? 'community' : 'communities'}`}
-              noBorder
-              className="mb-8"
-            >
+          {/* Communities */}
+          {isLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-5 rounded-2xl border border-border/30 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-9 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : communities.length > 0 ? (
+            <PageSection title="Your Communities" subtitle={`Active in ${communities.length}`} noBorder>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {communities.map((community, idx) => (
-                  <motion.div
-                    key={community.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.5 + idx * 0.05 }}
-                  >
-                    <PremiumCard interactive elevated>
+                {communities.map((c, idx) => (
+                  <motion.div key={c.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 + idx * 0.05 }}>
+                    <PremiumCard interactive elevated className="p-5">
                       <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground">{community.community.name}</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Role: {community.role}</p>
+                        <div>
+                          <h3 className="font-semibold">{c.community.name}</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Role: {c.role}</p>
                         </div>
-                        <Badge variant="primary">{community.status}</Badge>
+                        <Badge variant="primary">{c.status}</Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground mb-4">
-                        Joined {new Date(community.joinedAt).toLocaleDateString()}
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => router.push(`/communities/${community.community.id}`)}
-                      >
+                      <p className="text-xs text-muted-foreground mb-4">Joined {new Date(c.joinedAt).toLocaleDateString()}</p>
+                      <Button variant="outline" size="sm" className="w-full" onClick={() => router.push(`/communities/${c.community.id}`)}>
                         View Community
                       </Button>
                     </PremiumCard>
@@ -281,220 +242,19 @@ export default function Dashboard() {
                 ))}
               </div>
             </PageSection>
-          )}
-        </div>
-
-        {/* Quick Actions
-        <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-              Quick actions
-            </h2>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                label: 'Create Community',
-                description: 'Start your own group',
-                icon: Plus,
-                href: '/communities/create',
-                variant: 'primary' as const,
-              },
-              {
-                label: 'Join Community',
-                description: 'Enter invite code',
-                icon: Users,
-                href: '/communities/join',
-                variant: 'outline' as const,
-              },
-              {
-                label: 'Request Help',
-                description: 'Ask neighbors for help',
-                icon: HelpCircle,
-                href:
-                  communities.length > 0
-                    ? `/communities/${communities[0].community.id}/requests/create`
-                    : '/communities/join',
-                variant: 'outline' as const,
-              },
-              {
-                label: 'Chat',
-                description: 'Message neighbors',
-                icon: MessageCircle,
-                href: '/chat',
-                variant: 'outline' as const,
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <Card
-                  key={item.label}
-                  className={cn(
-                    'cursor-pointer transition-colors hover:border-primary/40 hover:bg-muted/50',
-                    item.variant === 'primary' && 'border-primary/30 bg-primary/5'
-                  )}
-                  onClick={() => router.push(item.href)}
-                >
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div
-                      className={cn(
-                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
-                        item.variant === 'primary' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-foreground">{item.label}</p>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Your Communities */}
-        <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-              Your communities
-            </h2>
-            {communities.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => router.push('/communities/join')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Join another
-              </Button>
-            )}
-          </div>
-
-          {isLoading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="mt-2 h-4 w-1/2" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-9 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : communities.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <Users className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <CardTitle className="text-lg">No communities yet</CardTitle>
-                <CardDescription className="mt-1 max-w-sm">
-                  Create a community or join one with an invite code to see requests and chat with neighbors.
-                </CardDescription>
-                <div className="mt-6 flex gap-3">
-                  <Button onClick={() => router.push('/communities/create')}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create community
-                  </Button>
-                  <Button variant="outline" onClick={() => router.push('/communities/join')}>
-                    <Users className="mr-2 h-4 w-4" />
-                    Join with code
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {communities.map((membership) => (
-                <Card
-                  key={membership.id}
-                  className="cursor-pointer transition-colors hover:border-primary/30 hover:bg-muted/30"
-                  onClick={() => router.push(`/communities/${membership.community.id}`)}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-base font-semibold">
-                        {membership.community.name}
-                      </CardTitle>
-                      <Badge variant={membership.role === 'admin' ? 'primary' : 'ghost'} className="shrink-0">
-                        {membership.role}
-                      </Badge>
-                    </div>
-                    <CardDescription>
-                      Joined {new Date(membership.joinedAt).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="rounded-md border bg-muted/50 px-3 py-2">
-                      <p className="text-xs font-medium text-muted-foreground">Invite code</p>
-                      <code className="text-sm font-mono font-medium text-foreground">
-                        {membership.community.inviteCode}
-                      </code>
-                    </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/communities/${membership.community.id}`);
-                      }}
-                    >
-                      View community
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <PremiumCard className="p-8 text-center border-dashed">
+              <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-1">No communities yet</h3>
+              <p className="text-sm text-muted-foreground mb-6">Join or create a community to get started.</p>
+              <div className="flex gap-3 justify-center">
+                <Button onClick={() => router.push('/communities/create')}><Plus className="h-4 w-4 mr-2" /> Create</Button>
+                <Button variant="outline" onClick={() => router.push('/communities/join')}><Users className="h-4 w-4 mr-2" /> Join</Button>
+              </div>
+            </PremiumCard>
           )}
         </div>
-
-        {/* Explore */}
-        {/* <div className="mb-8">
-          <h2 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            Explore
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { label: 'Reputation', description: 'Badges & leaderboard', icon: Trophy, href: '/reputation' },
-              { label: 'Wallet', description: 'Payments & transactions', icon: Wallet, href: '/wallet' },
-              { label: 'Achievements', description: 'Progress & badges', icon: Award, href: '/reputation' },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <Card
-                  key={item.label}
-                  className="cursor-pointer transition-colors hover:border-primary/30 hover:bg-muted/30"
-                  onClick={() => router.push(item.href)}
-                >
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-foreground">{item.label}</p>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div> */}
-
-
-        {/* Demo & AI */}
-        {/* <div className="grid gap-6 lg:grid-cols-2">
-          <DemoMode />
-          <AIAssistant context="your dashboard and community features" />
-        </div> */}
       </div>
     </AppShell>
   );
 }
-
