@@ -8,6 +8,7 @@ interface AuthRequest extends Request {
     id: string;
     email: string;
     phone: string;
+    isGuest?: boolean;
   };
 }
 
@@ -33,12 +34,13 @@ export const authenticateToken = async (
 
     const user: any = db.prepare('SELECT id, email, phone, isVerified FROM users WHERE id = ?').get(decoded.userId);
 
-    if (!user || !user.isVerified) {
+    const isGuestToken = !!decoded.isGuest;
+    if (!user || (!user.isVerified && !isGuestToken)) {
       res.status(401).json({ error: 'Invalid or unverified user' });
       return;
     }
 
-    req.user = { id: user.id, email: user.email, phone: user.phone };
+    req.user = { id: user.id, email: user.email, phone: user.phone, isGuest: isGuestToken };
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
@@ -90,10 +92,10 @@ export const optionalAuth = async (
 
     if (token) {
       try {
-        const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string; email: string };
+        const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string; email: string; isGuest?: boolean };
         const user: any = db.prepare('SELECT id, email, phone, isVerified FROM users WHERE id = ?').get(decoded.userId);
-        if (user && user.isVerified) {
-          req.user = { id: user.id, email: user.email, phone: user.phone };
+        if (user && (user.isVerified || decoded.isGuest)) {
+          req.user = { id: user.id, email: user.email, phone: user.phone, isGuest: !!decoded.isGuest };
         }
       } catch (_e) {
         // Silently fail for optional auth

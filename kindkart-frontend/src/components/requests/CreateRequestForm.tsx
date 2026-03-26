@@ -21,7 +21,7 @@ const createRequestSchema = z.object({
   category: z.string().min(1, 'Please select a category'),
   location: z.string().optional(),
   timing: z.string().optional(),
-  privacyLevel: z.enum(['community', 'public']).default('community'),
+  privacyLevel: z.enum(['community', 'public']).optional(),
 });
 
 type CreateRequestFormData = z.infer<typeof createRequestSchema>;
@@ -65,6 +65,7 @@ export function CreateRequestForm({ communityId, onSuccess }: CreateRequestFormP
     try {
       const request = await api.requests.create({
         ...data,
+        privacyLevel: data.privacyLevel ?? 'community',
         communityId,
         category: selectedCategory,
       });

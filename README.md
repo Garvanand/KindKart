@@ -1,268 +1,191 @@
-# KindKart - Neighborhood Community App
+# KindKart
 
-A hyper-local community platform that connects neighbors for peer-to-peer help and services. Think of it as a "society WhatsApp group" but organized, with built-in trust mechanisms, reputation systems, and secure payments.
+KindKart is a neighborhood collaboration platform for trusted local help, task coordination, emergency alerts, messaging, reputation, and payments.
 
-## 🚀 Current Status
+This README reflects what is currently implemented in this repository as of March 2026.
 
-### ✅ Completed Phases
-- [x] **Phase 1: Authentication & User Management** - Foundation setup and user onboarding
-  - [x] Project setup with Next.js 14+ and Express.js
-  - [x] Database schema with Prisma and PostgreSQL
-  - [x] Authentication system with OTP verification
-  - [x] User profile management
-  - [x] Basic UI components with shadcn/ui
+## Current Implementation Status
 
-### 🚧 Current Phase: Phase 1 - Authentication & User Management (Weeks 1-2)
+### Backend API modules implemented
+- Authentication: OTP send/verify, token refresh, guest login, logout.
+- Users: profile read/update, profile photo URL update, user community listing.
+- Communities: create, join via invite code, member listing, admin approval/rejection hooks.
+- Help requests: create, browse by community, respond, accept response, status and completion flow.
+- Messaging: request-level chat threads and conversation listing.
+- Payments and wallet: order creation, payment verification, transaction history, escrow hold/release/dispute.
+- Reputation: user reputation, badges, achievements endpoint, leaderboard, community reputation updates.
+- Notifications: list, unread count, mark one/all read.
+- Emergency: alert creation, responses, resolve flow, responder notifications.
+- Tasks: create tasks, apply, review applications, update status.
+- Extended module (`/api/ext`): skills, gamification challenges/streaks/karma shop, global search, community analytics, events, announcements, onboarding tour completion.
+- AI route (`/api/ai/chat`): API contract endpoint is present; Gemini response execution currently happens on frontend.
 
-#### Completed Tasks
-- [x] Initialize Next.js project with TypeScript and App Router
-- [x] Set up Tailwind CSS and shadcn/ui components
-- [x] Configure Express.js backend with TypeScript
-- [x] Initialize Prisma with PostgreSQL schema
-- [x] Implement Firebase Auth integration (basic OTP flow)
-- [x] Create user profile creation and editing functionality
-- [x] Set up authentication store with Zustand
-- [x] Create responsive mobile-first UI components
+### Frontend modules implemented
+- Authentication and onboarding flows with guest mode support.
+- Core product pages: dashboard, communities, requests, chat, wallet, reputation, safety.
+- Additional product surfaces: events, analytics, mission, karma shop, help center.
+- AI assistant UI integrated in product pages using Gemini client-side key.
+- App tour and demo-mode fallbacks when APIs are unavailable.
+- Reusable UI kit (`PremiumCard`, `PageHeader`, badges, stat cards) and app shell layout.
 
-#### Next Steps
-- [ ] Set up PostgreSQL database connection
-- [ ] Implement Firebase Auth for real OTP sending
-- [ ] Add profile photo upload functionality
-- [ ] Create community management system (Phase 2)
-- [ ] Implement help request system (Phase 3)
+### Platform and runtime
+- Monorepo with separate frontend and backend applications.
+- Express 5 API with TypeScript, route-level middleware, rate limiting, and security middleware.
+- SQLite runtime database via `better-sqlite3`; Prisma schema and validation scripts retained.
+- Socket.IO server initialized for real-time chat handling.
+- Optional Redis, Razorpay, Firebase service account, and S3 environment hooks.
+- Health and readiness endpoints: `/health` and `/health/ready`.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### Frontend
-- **Framework**: Next.js 14+ with React 18+ and TypeScript
-- **Styling**: Tailwind CSS with custom components
-- **UI Components**: shadcn/ui for consistent design system
-- **State Management**: Zustand for global state
-- **Forms**: React Hook Form with Zod validation
-- **Real-time**: Socket.IO client (ready for Phase 4)
+- Frontend: Next.js 15, React 19, TypeScript, Tailwind CSS, Zustand, React Hook Form, Zod, Framer Motion.
+- Backend: Node.js, Express 5, TypeScript, JWT, better-sqlite3, Socket.IO, Redis client.
+- Payments and integrations: Razorpay, optional Firebase service credentials, optional AWS S3.
 
-### Backend
-- **Framework**: Node.js with Express.js and TypeScript
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: Firebase Auth (OTP-based)
-- **Real-time**: Socket.IO for live features
-- **File Storage**: AWS S3 (ready for implementation)
-- **Payments**: Razorpay integration (Phase 5)
-- **Caching**: Redis (Phase 6)
+## Repository Structure
 
-### Infrastructure
-- **Frontend Hosting**: Vercel
-- **Backend Hosting**: Railway or Render
-- **Database**: PostgreSQL (Railway/Supabase)
-- **CDN**: Cloudflare for static assets
-
-## 📁 Project Structure
-
-```
+```text
 kindkart/
-├── kindkart-frontend/          # Next.js application
-│   ├── src/
-│   │   ├── app/               # App router pages
-│   │   ├── components/        # Reusable components
-│   │   │   ├── ui/           # shadcn/ui components
-│   │   │   └── auth/         # Authentication components
-│   │   ├── lib/              # Utilities and API client
-│   │   ├── store/            # Zustand state management
-│   │   └── types/            # TypeScript type definitions
-│   └── package.json
-├── kindkart-backend/           # Express.js API server
-│   ├── src/
-│   │   ├── controllers/      # Route controllers
-│   │   ├── middleware/       # Express middleware
-│   │   ├── routes/           # API routes
-│   │   └── index.ts          # Main server file
-│   ├── prisma/               # Database schema and migrations
-│   └── package.json
-├── memory-bank/               # Project documentation
-└── README.md
+  kindkart-frontend/   # Next.js application (App Router)
+  kindkart-backend/    # Express API server
+  memory-bank/         # project documentation and notes
 ```
 
-## 🚀 Getting Started
+## Quick Start (Local Development)
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL 14+
-- Redis (for caching)
-- Git
+- npm 9+
+- Redis (optional, for OTP caching/rate flows)
 
-### Frontend Setup
+### 1) Backend setup
 
-```bash
-cd kindkart-frontend
-npm install
-npm run dev
-```
+PowerShell:
 
-The frontend will be available at `http://localhost:3000`
-
-### Backend Setup
-
-```bash
+```powershell
 cd kindkart-backend
 npm install
-
-# Set up environment variables
-cp env.example .env
-# Edit .env with your database and service credentials
-
-# Set up database
-npx prisma generate
-npx prisma migrate dev
-
-# Start development server
+Copy-Item env.example .env
 npm run dev
 ```
 
-The backend will be available at `http://localhost:3001`
+Backend starts on `PORT` (default `3001`). If occupied, it auto-retries on the next port.
 
-### Environment Variables
+### 2) Frontend setup
 
-#### Frontend (`kindkart-frontend/.env.local`)
+PowerShell:
+
+```powershell
+cd kindkart-frontend
+npm install
+Copy-Item env.local.example .env.local
+npm run dev
+```
+
+Frontend runs at `http://localhost:3000`.
+
+## Environment Configuration
+
+### Frontend (`kindkart-frontend/.env.local`)
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
 NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
-NEXT_PUBLIC_FIREBASE_CONFIG={"apiKey":"..."}
+
+NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef123456
+
+NEXT_PUBLIC_GEMINI_API_KEY=your-gemini-api-key
 ```
 
-#### Backend (`kindkart-backend/.env`)
+### Backend (`kindkart-backend/.env`)
+
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/kindkart"
-JWT_SECRET=your-super-secret-key
-REDIS_URL=redis://localhost:6379
-AWS_ACCESS_KEY_ID=your-aws-key
-AWS_SECRET_ACCESS_KEY=your-aws-secret
-S3_BUCKET_NAME=kindkart-uploads
-RAZORPAY_KEY_ID=your-razorpay-key
-RAZORPAY_KEY_SECRET=your-razorpay-secret
-FIREBASE_SERVICE_ACCOUNT={"type":"service_account",...}
+DATABASE_URL="file:../data/kindkart.db"
+JWT_SECRET="change-this-to-a-long-random-secret"
 PORT=3001
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL="http://localhost:3000"
+NODE_ENV="development"
+
+# Optional
+REDIS_URL="redis://localhost:6379"
+RAZORPAY_KEY_ID=""
+RAZORPAY_KEY_SECRET=""
+AWS_ACCESS_KEY_ID=""
+AWS_SECRET_ACCESS_KEY=""
+S3_BUCKET_NAME=""
+AWS_REGION=""
+FIREBASE_SERVICE_ACCOUNT='{"type":"service_account"}'
 ```
 
-## 📊 Development Phases
+Notes:
+- In development, backend can run with defaults if some values are missing.
+- In production, set a strong `JWT_SECRET` (32+ characters) and explicit env values.
 
-### Phase 1: Authentication & User Management ✅
-- Project setup and configuration
-- Firebase Auth integration with OTP
-- User profile management
-- Database schema implementation
-- Basic UI components and mobile responsiveness
+## API Surface Summary
 
-### Phase 2: Community Management (Weeks 3-4)
-- Community creation and management
-- Invite code system
-- Admin approval workflow
-- Member directory and search
+All routes are mounted under `/api` except health checks.
 
-### Phase 3: Help Request System (Weeks 5-6)
-- Request creation and categorization
-- Real-time feed with Socket.IO
-- Helper assignment and tracking
-- Request status management
+- `/api/auth`: send OTP, verify OTP, refresh token, guest login, logout.
+- `/api/users`: profile and user community endpoints.
+- `/api/communities`: create/join communities and member operations.
+- `/api/requests`: help request lifecycle and responses.
+- `/api/messages`: request chat threads and conversations.
+- `/api/payments`: payment order/verify/release/dispute plus wallet and transactions.
+- `/api/reputation`: score, badges, achievements, leaderboard, updates.
+- `/api/notifications`: feed and read state endpoints.
+- `/api/emergency`: create/respond/resolve emergency alerts.
+- `/api/tasks`: community task creation, application and moderation.
+- `/api/ext`: skills, gamification, search, analytics, events, announcements, tour completion.
+- `/api/ai/chat`: AI chat API contract endpoint.
 
-### Phase 4: Communication & Chat (Weeks 7-8)
-- One-on-one messaging system
-- Real-time notifications
-- Message persistence and history
-- Optional WhatsApp integration
+## NPM Scripts
 
-### Phase 5: Payment & Escrow System (Weeks 9-10)
-- Razorpay integration
-- Escrow payment holding
-- Work verification system
-- Dispute resolution mechanism
+### Backend (`kindkart-backend/package.json`)
 
-### Phase 6: Reputation & Gamification (Weeks 11-12)
-- Reputation scoring system
-- Leaderboards with Redis caching
-- Badge and achievement system
-- Community analytics dashboard
-
-## 🔧 Available Scripts
-
-### Frontend
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+npm run dev             # start dev server with nodemon
+npm run build           # compile TypeScript to dist
+npm run start           # run compiled server
+npm run prisma:validate # validate Prisma schema
+npm run prisma:generate # generate Prisma client
+npm run db:check        # build + prisma validate
 ```
 
-### Backend
+### Frontend (`kindkart-frontend/package.json`)
+
 ```bash
-npm run dev          # Start development server with nodemon
-npm run build        # Build TypeScript to JavaScript
-npm run start        # Start production server
-npm run prisma:generate  # Generate Prisma client
-npm run prisma:migrate   # Run database migrations
-npm run prisma:studio    # Open Prisma Studio
+npm run dev
+npm run build
+npm run start
+npm run lint
 ```
 
-## 📱 Features Implemented
+## Production Readiness Notes
 
-### Authentication System
-- OTP-based login/signup flow
-- Mobile and email verification
-- JWT token management with refresh
-- Protected route middleware
-- User profile creation and editing
+Implemented today:
+- Structured API layers with middleware, auth, and error handling.
+- Health endpoints and graceful shutdown.
+- Security middleware (XSS/sanitization) and rate limiting.
+- Feature-complete domain modules for core product surfaces.
 
-### User Interface
-- Mobile-first responsive design
-- Modern UI with shadcn/ui components
-- Form validation with React Hook Form and Zod
-- State management with Zustand
-- Type-safe development with TypeScript
+Still recommended before production launch:
+- Add automated tests (unit/integration/e2e) and CI pipeline.
+- Move Gemini calls to backend proxy to avoid exposing client key.
+- Harden observability (central logs, metrics, alerting) and backup strategy.
+- Add migration and release runbooks for zero-downtime deploys.
 
-### Database Schema
-- Users with profile information
-- Communities with invite codes
-- Community members with roles
-- Help requests and responses
-- Messages and conversations
-- Transactions and escrow holds
-- User reputation and badges
-- Leaderboards
+## Deployment Baseline
 
-## 🐛 Known Issues
-- Firebase Auth integration needs real OTP implementation
-- Profile photo upload needs AWS S3 integration
-- Database connection needs to be configured
+- Frontend: Vercel or equivalent Next.js host.
+- Backend: container or Node host (Render, Railway, Fly.io, ECS, etc.).
+- Database: managed relational DB migration plan if moving beyond SQLite for scale.
+- Cache/queue: managed Redis for OTP/session/cache workloads.
 
-## 📊 Free Tier Limitations & Monitoring
-- **Supabase Database**: 500MB storage, 2GB bandwidth/month
-- **Supabase Auth**: Unlimited users on free tier
-- **Supabase Storage**: 1GB storage, 2GB bandwidth/month  
-- **Vercel Hosting**: 100GB bandwidth, unlimited deployments
-- **Railway Backend**: 500 hours/month, $5 credit
+## License
 
-### Cost Optimization Tips
-- Implement image compression before upload
-- Use database queries efficiently with proper indexing
-- Cache frequently accessed data in localStorage
-- Monitor usage in Supabase dashboard weekly
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the ISC License.
-
-## 🆘 Support
-
-For support, please open an issue in the GitHub repository or contact the development team.
-
----
-
-**Next Milestone**: Complete Phase 1 by setting up database connection and implementing real Firebase Auth integration.
+ISC

@@ -3,39 +3,48 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
+  Home,
   HelpCircle,
   MessageCircle,
   Wallet,
   Award,
   Calendar,
   AlertTriangle,
-  Target,
   ShoppingBag,
   BarChart3,
   Shield,
   Users,
-  Compass,
-  Sparkles,
-  ChevronRight,
+  Newspaper,
+  Handshake,
+  Settings,
+  LifeBuoy,
+  UserPlus,
+  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
 const mainNavItems = [
-  { href: '/dashboard', label: 'Mission Control', icon: LayoutDashboard, badge: null },
+  { href: '/dashboard', label: 'Home', icon: Home, badge: null },
+  { href: '/communities', label: 'Groups', icon: Users, badge: null },
+  { href: '/events', label: 'Events', icon: Calendar, badge: null },
   { href: '/requests', label: 'Requests', icon: HelpCircle, badge: null },
-  { href: '/mission', label: 'Mission Board', icon: Target, badge: 'NEW' },
   { href: '/chat', label: 'Chat', icon: MessageCircle, badge: null },
-  { href: '/wallet', label: 'Wallet', icon: Wallet, badge: null },
-  { href: '/reputation', label: 'Reputation', icon: Award, badge: null },
+  { href: '/safety', label: 'Alerts', icon: AlertTriangle, badge: null },
+  { href: '/karma-shop', label: 'For Sale & Free', icon: ShoppingBag, badge: null },
+  { href: '/analytics', label: 'Local Insights', icon: Newspaper, badge: null },
+  { href: '/mission', label: 'Tasks', icon: Handshake, badge: null },
 ];
 
 const secondaryNavItems = [
-  { href: '/karma-shop', label: 'Karma Shop', icon: ShoppingBag, badge: null },
-  { href: '/events', label: 'Events', icon: Calendar, badge: null },
+  { href: '/wallet', label: 'Wallet', icon: Wallet, badge: null },
+  { href: '/reputation', label: 'Profile', icon: Award, badge: null },
+  { href: '/onboarding', label: 'Settings', icon: Settings, badge: null },
+  { href: '/communities/join', label: 'Invite neighbors', icon: UserPlus, badge: null },
   { href: '/safety', label: 'Safety Center', icon: Shield, badge: null },
   { href: '/analytics', label: 'Analytics', icon: BarChart3, badge: null },
+  { href: '/help-center', label: 'Help Center', icon: LifeBuoy, badge: null },
 ];
 
 interface SidebarNavProps {
@@ -65,10 +74,10 @@ export function SidebarNav({ communityId, className, collapsed = false }: Sideba
         <Link
           href={item.href}
           className={cn(
-            'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 relative',
+            'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-all duration-200 relative',
             active
-              ? 'bg-primary/12 text-primary shadow-glow-sm'
-              : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+              ? 'bg-[#ebf4ec] text-[#1f8a4d]'
+              : 'text-[#304235] hover:bg-[#eff3ed] hover:text-[#223228]'
           )}
           title={collapsed ? item.label : undefined}
         >
@@ -79,7 +88,7 @@ export function SidebarNav({ communityId, className, collapsed = false }: Sideba
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             />
           )}
-          <Icon className={cn('h-[18px] w-[18px] shrink-0 transition-colors', active && 'text-primary')} />
+          <Icon className={cn('h-[19px] w-[19px] shrink-0 transition-colors', active && 'text-[#1f8a4d]')} />
           {!collapsed && (
             <>
               <span className="flex-1">{item.label}</span>
@@ -98,28 +107,22 @@ export function SidebarNav({ communityId, className, collapsed = false }: Sideba
   return (
     <aside className={cn('flex h-full flex-col', className)}>
       {/* Brand */}
-      <div className="flex h-14 shrink-0 items-center px-4 mb-2">
-        <Link href="/dashboard" className="flex items-center gap-2.5 group">
-          <div className="h-8 w-8 rounded-lg gradient-neon flex-center flex-shrink-0">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-foreground tracking-tight">KindKart</span>
-              <span className="text-[10px] text-muted-foreground font-medium -mt-0.5">Neighborhood OS</span>
-            </div>
-          )}
-        </Link>
-      </div>
+      <div className="h-2" />
 
       {/* Main nav */}
       <nav className="flex-1 space-y-0.5 overflow-auto px-3 scrollbar-thin">
+        {!collapsed && (
+          <div className="px-1 pb-3">
+            <Button
+              className="h-11 w-full rounded-full bg-[#1f8a4d] text-white hover:bg-[#176f3d]"
+              onClick={() => (window.location.href = '/requests/create')}
+            >
+              <Plus className="h-4 w-4 mr-2" /> Post
+            </Button>
+          </div>
+        )}
+
         <div className="space-y-0.5">
-          {!collapsed && (
-            <p className="px-3 py-2 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">
-              Main
-            </p>
-          )}
           {mainNavItems.map((item, idx) => (
             <NavItem key={item.href} item={item} index={idx} />
           ))}
@@ -148,11 +151,6 @@ export function SidebarNav({ communityId, className, collapsed = false }: Sideba
         {/* Secondary nav */}
         <div className="mt-4">
           <div className="my-2 h-px bg-border/50" />
-          {!collapsed && (
-            <p className="px-3 py-2 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">
-              Explore
-            </p>
-          )}
           {secondaryNavItems.map((item, idx) => (
             <NavItem key={item.href} item={item} index={idx + mainNavItems.length} />
           ))}
@@ -161,18 +159,10 @@ export function SidebarNav({ communityId, className, collapsed = false }: Sideba
 
       {/* Bottom section */}
       {!collapsed && (
-        <div className="p-3 mt-auto">
-          <Link
-            href="/onboarding"
-            className="flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-medium bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-foreground hover:border-primary/40 transition-all group"
-          >
-            <Compass className="h-4 w-4 text-primary" />
-            <div className="flex-1">
-              <p className="text-xs font-semibold">Get Started</p>
-              <p className="text-[10px] text-muted-foreground">Setup your profile</p>
-            </div>
-            <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-          </Link>
+        <div className="p-3 mt-auto space-y-1 text-[14px] text-[#304235]">
+          <Link href="/onboarding" className="block rounded-lg px-3 py-2 hover:bg-[#eff3ed]">Settings</Link>
+          <Link href="/help-center" className="block rounded-lg px-3 py-2 hover:bg-[#eff3ed]">Help Center</Link>
+          <Link href="/communities/join" className="block rounded-lg px-3 py-2 hover:bg-[#eff3ed]">Invite neighbors</Link>
         </div>
       )}
     </aside>

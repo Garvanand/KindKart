@@ -38,9 +38,9 @@ interface EnvConfig {
 // JWT_SECRET can have a default in development
 const getRequiredEnvVars = (): readonly string[] => {
   if (process.env.NODE_ENV === 'production') {
-    return ['DATABASE_URL', 'JWT_SECRET'] as const;
+    return ['JWT_SECRET'] as const;
   }
-  return ['DATABASE_URL'] as const;
+  return [] as const;
 };
 
 const optionalEnvVars = [
@@ -86,7 +86,7 @@ function validateEnv(): EnvConfig {
   
   // SQLite doesn't need DATABASE_URL validation - it's file-based
   // DATABASE_URL is optional now, but kept for compatibility
-  const dbUrl = process.env.DATABASE_URL || 'sqlite://data/kindkart.db';
+  const dbUrl = process.env.DATABASE_URL || 'file:../data/kindkart.db';
   
   return {
     DATABASE_URL: dbUrl,
@@ -119,7 +119,7 @@ try {
     // Provide defaults for development
     const defaultJWTSecret = 'dev-secret-key-change-in-production-' + Math.random().toString(36).substring(7);
     env = {
-      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/kindkart',
+      DATABASE_URL: process.env.DATABASE_URL || 'file:../data/kindkart.db',
       JWT_SECRET: process.env.JWT_SECRET || defaultJWTSecret,
       PORT: parseInt(process.env.PORT || '3001', 10),
       FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',

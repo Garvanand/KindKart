@@ -44,12 +44,16 @@ export const communityController = {
       if (existing) { res.status(400).json({ error: 'Already a member of this community' }); return; }
 
       const id = generateId();
-      db.prepare("INSERT INTO community_members (id, communityId, userId, role, status) VALUES (?, ?, ?, 'member', 'pending')").run(id, community.id, req.user.id);
+      db.prepare("INSERT INTO community_members (id, communityId, userId, role, status) VALUES (?, ?, ?, 'member', 'approved')").run(id, community.id, req.user.id);
 
       const membership: any = db.prepare('SELECT * FROM community_members WHERE id = ?').get(id);
       membership.community = { id: community.id, name: community.name, inviteCode: community.inviteCode };
 
-      res.status(201).json({ message: 'Join request submitted successfully', membership });
+      res.status(201).json({
+        message: 'Joined community successfully',
+        community: membership.community,
+        membership,
+      });
     } catch (error) {
       console.error('Join community error:', error);
       res.status(500).json({ error: 'Failed to join community' });

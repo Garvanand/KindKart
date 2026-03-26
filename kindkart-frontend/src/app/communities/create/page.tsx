@@ -25,7 +25,7 @@ export default function CreateCommunityPage() {
 
   if (createdCommunity) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
@@ -73,7 +73,7 @@ export default function CreateCommunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <CreateCommunityForm onSuccess={handleSuccess} />
         
@@ -81,7 +81,7 @@ export default function CreateCommunityPage() {
           <Button 
             variant="ghost"
             onClick={() => router.push('/dashboard')}
-            className="text-gray-600"
+            className="text-muted-foreground"
           >
             ← Back to Dashboard
           </Button>
@@ -90,3 +90,5 @@ export default function CreateCommunityPage() {
     </div>
   );
 }
+
+

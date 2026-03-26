@@ -17,10 +17,11 @@ const features = [
 ];
 
 export default function AuthPage() {
-  const [authStep, setAuthStep] = useState<'login' | 'profile' | 'complete'>('login');
+  const [authStep, setAuthStep] = useState<'login' | 'profile'>('login');
   const [isLoading, setIsLoading] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const router = useRouter();
-  const { user, isAuthenticated, isHydrated, setUser } = useAuthStore();
+  const { user, isAuthenticated, isHydrated, setUser, loginAsGuest } = useAuthStore();
   const isClientHydrated = useHydration();
   const isFullyHydrated = isHydrated && isClientHydrated;
 
@@ -35,25 +36,29 @@ export default function AuthPage() {
 
   const handleProfileComplete = async (profileData: any) => {
     setIsLoading(true);
+    setProfileError(null);
     try {
       const updatedUser = await api.users.updateProfile(profileData);
       setUser(updatedUser.user);
       router.push('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Profile update failed:', error);
-      router.push('/dashboard');
+      setProfileError(error?.message || 'Could not save profile details. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGuestLogin = () => router.push('/dashboard');
+  const handleGuestLogin = () => {
+    loginAsGuest();
+    router.push('/dashboard');
+  };
 
   if (!isFullyHydrated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center mx-auto mb-4">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center mx-auto mb-4">
             <Sparkles className="h-6 w-6 text-white" />
           </div>
           <p className="text-muted-foreground text-sm">Loading KindKart...</p>
@@ -65,28 +70,28 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-mesh-1 opacity-40" />
+      <div className="absolute inset-0 bg-mesh-1 opacity-25" />
       <motion.div
         className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]"
         animate={{ y: [0, 30, 0], x: [0, -20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
       <motion.div
-        className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-violet-500/5 rounded-full blur-[100px]"
+        className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px]"
         animate={{ y: [0, -20, 0] }}
         transition={{ duration: 8, repeat: Infinity }}
       />
 
       <div className="relative min-h-screen flex">
         {/* Left Panel - Branding (hidden on mobile) */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative">
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-14 relative">
           <div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-3 mb-16"
             >
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -100,10 +105,10 @@ export default function AuthPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h1 className="text-4xl font-bold leading-tight mb-4">
+              <h1 className="text-[2.65rem] font-semibold tracking-tight leading-[1.1] mb-4">
                 Welcome to your
                 <br />
-                <span className="text-gradient-neon">Neighborhood OS</span>
+                <span className="text-gradient">Neighborhood OS</span>
               </h1>
               <p className="text-muted-foreground text-lg max-w-md leading-relaxed">
                 Connect with trusted neighbors, get help when you need it, and build a stronger community.
@@ -148,7 +153,7 @@ export default function AuthPage() {
           >
             {/* Mobile brand */}
             <div className="lg:hidden flex items-center gap-2.5 mb-8">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <span className="text-base font-bold">KindKart</span>
@@ -168,7 +173,7 @@ export default function AuthPage() {
             </div>
 
             {/* Form card */}
-            <div className="p-6 sm:p-8 rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm">
+            <div className="p-6 sm:p-8 rounded-3xl border border-[#dbe3db] bg-white/90 backdrop-blur-sm shadow-[0_10px_26px_rgba(20,35,26,0.06)]">
               <AnimatePresence mode="wait">
                 {authStep === 'login' && (
                   <motion.div key="login" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -180,6 +185,11 @@ export default function AuthPage() {
                     <button onClick={() => setAuthStep('login')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
                       <ArrowLeft className="h-3.5 w-3.5" /> Back
                     </button>
+                    {profileError && (
+                      <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-300/30">
+                        <p className="text-xs text-rose-300">{profileError}</p>
+                      </div>
+                    )}
                     <ProfileSetupForm onComplete={handleProfileComplete} isLoading={isLoading} />
                   </motion.div>
                 )}

@@ -21,8 +21,7 @@ class SocketManager {
       reconnection: true,
       reconnectionAttempts: this.maxReconnectAttempts,
       reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      maxReconnectionAttempts: this.maxReconnectAttempts
+      reconnectionDelayMax: 5000
     });
 
     this.socket.on('connect', () => {
@@ -118,7 +117,7 @@ class SocketManager {
   }
 
   // Remove specific listener
-  removeListener(event: string, callback?: Function) {
+  removeListener(event: string, callback?: (...args: any[]) => void) {
     if (this.socket) {
       if (callback) {
         this.socket.off(event, callback);

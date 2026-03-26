@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Menu, Plus, Bell } from 'lucide-react';
+import { Search, Menu, Plus, Home } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NotificationDropdown } from './NotificationDropdown';
 import { ProfileDropdown } from './ProfileDropdown';
-import { ThemeSwitcher } from '@/components/theme/ThemeSwitcher';
+import { GuestBadge } from '@/components/guest/GuestMode';
 import { cn } from '@/lib/utils';
 
 interface AppHeaderProps {
@@ -17,6 +18,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ onMenuClick, showSearch = true, onSearchOpen, className }: AppHeaderProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -43,70 +45,73 @@ export function AppHeader({ onMenuClick, showSearch = true, onSearchOpen, classN
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 sm:gap-6 sm:px-6',
+        'sticky top-0 z-40 border-b border-[#dfe5dd] bg-[#f4f6f3] transition-all duration-300',
         isScrolled && 'shadow-sm border-border/80',
         className
       )}
     >
-      {/* Mobile menu button - only visible on small screens when sidebar is hidden */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="lg:hidden h-9 w-9"
-        onClick={onMenuClick}
-        aria-label="Open menu"
-      >
-        <Menu className="h-5 w-5" />
-      </Button>
+      <div className="mx-auto flex h-[66px] w-full max-w-[1500px] items-center gap-3 px-3 sm:px-5">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden h-9 w-9"
+          onClick={onMenuClick}
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
 
-      {/* Global search - enhanced with keyboard shortcut hint */}
-      {showSearch && (
-        <div className="hidden flex-1 md:flex md:max-w-sm lg:max-w-md xl:max-w-md">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input
-              type="search"
-              placeholder="Search (Ctrl+K)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onClick={onSearchOpen}
-              readOnly
-              className="h-9 w-full pl-9 pr-4 cursor-pointer bg-secondary hover:bg-muted transition-colors"
-              aria-label="Search"
-            />
+        <button onClick={() => router.push('/dashboard')} className="hidden items-center gap-2.5 text-[#1f8a4d] lg:flex">
+          <Home className="h-4 w-4 fill-current" />
+          <span className="text-[2rem] font-semibold tracking-tight [font-family:var(--font-lora,inherit)]">kindkart</span>
+        </button>
+
+        {showSearch && (
+          <div className="hidden flex-1 justify-center md:flex">
+            <div className="relative w-full max-w-xl">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#647065] pointer-events-none" />
+              <Input
+                type="search"
+                placeholder="Search people, requests, services (Ctrl+K)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClick={onSearchOpen}
+                readOnly
+                className="h-11 w-full rounded-full border-[#cfd8cf] bg-white pl-11 pr-4 text-[15px] text-[#25382e] cursor-pointer shadow-[0_1px_0_rgba(0,0,0,0.03)]"
+                aria-label="Search"
+              />
+            </div>
           </div>
+        )}
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden h-9 w-9"
+          onClick={onSearchOpen}
+          aria-label="Open search"
+        >
+          <Search className="h-5 w-5" />
+        </Button>
+
+        <div className="flex-1 md:hidden" />
+
+        <Button
+          size="sm"
+          className="hidden sm:flex gap-2 h-10 rounded-full bg-[#1f8a4d] hover:bg-[#176f3d] px-5"
+          variant="default"
+          onClick={() => router.push('/requests/create')}
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden md:inline">Post</span>
+        </Button>
+
+        {/* Right side actions */}
+        <div className="flex items-center gap-1 md:gap-2">
+          <GuestBadge className="mr-1" />
+          <NotificationDropdown />
+          <ProfileDropdown />
         </div>
-      )}
-
-      {/* Mobile search button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="md:hidden h-9 w-9"
-        onClick={onSearchOpen}
-        aria-label="Open search"
-      >
-        <Search className="h-5 w-5" />
-      </Button>
-
-      {/* Spacer for flex layout */}
-      <div className="flex-1" />
-
-      {/* Quick create button - visible on md+ */}
-      <Button
-        size="sm"
-        className="hidden sm:flex gap-2 h-9"
-        variant="default"
-      >
-        <Plus className="h-4 w-4" />
-        <span className="hidden md:inline">Create</span>
-      </Button>
-
-      {/* Right side actions */}
-      <div className="flex items-center gap-1 md:gap-2">
-        <ThemeSwitcher />
-        <NotificationDropdown />
-        <ProfileDropdown />
       </div>
     </header>
   );

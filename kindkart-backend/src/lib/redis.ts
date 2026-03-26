@@ -1,8 +1,14 @@
 import { createClient } from 'redis';
 
 let redisClient: ReturnType<typeof createClient> | null = null;
+let redisDisabled = false;
+let redisFailureLogged = false;
 
 export const getRedisClient = async () => {
+  if (redisDisabled) {
+    return null;
+  }
+
   if (redisClient && redisClient.isOpen) {
     return redisClient;
   }
@@ -12,10 +18,16 @@ export const getRedisClient = async () => {
   try {
     redisClient = createClient({
       url: redisUrl,
+      socket: {
+        reconnectStrategy: () => false,
+      },
     });
 
     redisClient.on('error', (err) => {
-      console.error('Redis Client Error:', err);
+      if (!redisFailureLogged) {
+        console.warn('Redis unavailable, continuing without cache/OTP store:', err.message);
+        redisFailureLogged = true;
+      }
     });
 
     redisClient.on('connect', () => {
@@ -23,9 +35,15 @@ export const getRedisClient = async () => {
     });
 
     await redisClient.connect();
+    redisFailureLogged = false;
     return redisClient;
   } catch (error) {
-    console.error('Failed to connect to Redis:', error);
+    redisDisabled = true;
+    if (!redisFailureLogged) {
+      console.warn('Failed to connect to Redis; disabling Redis features for this process.');
+      redisFailureLogged = true;
+    }
+    redisClient = null;
     // Return null if Redis is not available - app should still work
     return null;
   }

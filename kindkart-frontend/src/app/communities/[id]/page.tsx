@@ -81,10 +81,10 @@ export default function CommunityPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading community...</p>
+          <p className="text-muted-foreground">Loading community...</p>
         </div>
       </div>
     );
@@ -92,13 +92,13 @@ export default function CommunityPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-red-600">Error</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
             <div className="space-y-2">
               <Button onClick={() => router.push('/dashboard')} className="w-full">
                 Back to Dashboard
@@ -115,7 +115,7 @@ export default function CommunityPage() {
 
   if (!community) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Community Not Found</CardTitle>
@@ -143,7 +143,7 @@ export default function CommunityPage() {
   
   if (!userMembership || (!isApproved && !isGuest)) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
@@ -208,7 +208,7 @@ export default function CommunityPage() {
 
         {/* Quick Actions */}
         <div className="mt-12">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <h3 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
             Quick Actions
           </h3>
@@ -223,7 +223,7 @@ export default function CommunityPage() {
                     <HelpCircle className="w-7 h-7 text-white" />
                   </div>
                   <h4 className="font-semibold text-lg mb-1">Request Help</h4>
-                  <p className="text-sm text-gray-600">Ask your neighbors for assistance</p>
+                  <p className="text-sm text-muted-foreground">Ask your neighbors for assistance</p>
                 </div>
               </CardContent>
             </Card>
@@ -237,21 +237,21 @@ export default function CommunityPage() {
                     <Users className="w-7 h-7 text-white" />
                   </div>
                   <h4 className="font-semibold text-lg mb-1">Browse Requests</h4>
-                  <p className="text-sm text-gray-600">Find ways to help others</p>
+                  <p className="text-sm text-muted-foreground">Find ways to help others</p>
                 </div>
               </CardContent>
             </Card>
             <Card 
-              className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer border-2 hover:border-purple-400"
+              className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer border-2 hover:border-green-500"
               onClick={() => router.push('/chat')}
             >
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <div className="mx-auto w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mb-3 shadow-lg">
+                  <div className="mx-auto w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-3 shadow-lg">
                     <MessageSquare className="w-7 h-7 text-white" />
                   </div>
                   <h4 className="font-semibold text-lg mb-1">Community Chat</h4>
-                  <p className="text-sm text-gray-600">Connect with neighbors</p>
+                  <p className="text-sm text-muted-foreground">Connect with neighbors</p>
                 </div>
               </CardContent>
             </Card>
@@ -265,7 +265,7 @@ export default function CommunityPage() {
                     <Trophy className="w-7 h-7 text-white" />
                   </div>
                   <h4 className="font-semibold text-lg mb-1">Reputation</h4>
-                  <p className="text-sm text-gray-600">View leaderboard & badges</p>
+                  <p className="text-sm text-muted-foreground">View leaderboard & badges</p>
                 </div>
               </CardContent>
             </Card>
@@ -279,3 +279,5 @@ export default function CommunityPage() {
     </AppShell>
   );
 }
+
+

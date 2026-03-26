@@ -168,10 +168,10 @@ export default function ChatPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading chat...</p>
+          <p className="text-muted-foreground">Loading chat...</p>
         </div>
       </div>
     );
@@ -179,7 +179,7 @@ export default function ChatPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-red-600 flex items-center gap-2">
@@ -188,7 +188,7 @@ export default function ChatPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
             <div className="space-y-2">
               <Button onClick={() => router.push(`/communities/${communityId}`)} className="w-full">
                 Back to Community
@@ -205,13 +205,13 @@ export default function ChatPage() {
 
   if (!request || !otherUser) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Chat Not Available</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               This chat is not available. Make sure the request has been accepted and you have permission to chat.
             </p>
             <Button onClick={() => router.push(`/communities/${communityId}`)} className="w-full">
@@ -229,13 +229,13 @@ export default function ChatPage() {
 
   if (!canChat) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               You don't have permission to access this chat. Only the requester and assigned helper can chat.
             </p>
             <Button onClick={() => router.push(`/communities/${communityId}`)} className="w-full">
@@ -248,9 +248,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card/70 backdrop-blur border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
@@ -263,8 +263,8 @@ export default function ChatPage() {
                 Back to Request
               </Button>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Chat</h1>
-                <p className="text-sm text-gray-500">{request.title}</p>
+                <h1 className="text-xl font-semibold text-foreground">Chat</h1>
+                <p className="text-sm text-muted-foreground">{request.title}</p>
               </div>
             </div>
           </div>
@@ -284,3 +284,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
+

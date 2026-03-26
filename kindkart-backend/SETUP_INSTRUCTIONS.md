@@ -9,7 +9,7 @@
 
 2. **Set minimum required variables in .env**:
    ```env
-   DATABASE_URL="your-database-url-here"
+   DATABASE_URL="file:../data/kindkart.db"
    JWT_SECRET="your-super-secret-jwt-key-at-least-32-characters-long"
    PORT=3001
    FRONTEND_URL="http://localhost:3000"
@@ -18,7 +18,7 @@
 
 3. **For development, minimum setup**:
    ```env
-   DATABASE_URL="postgresql://user:password@localhost:5432/kindkart"
+   DATABASE_URL="file:../data/kindkart.db"
    JWT_SECRET="dev-secret-key-for-development-only"
    PORT=3001
    FRONTEND_URL="http://localhost:3000"
@@ -28,10 +28,10 @@
 ## Current .env File
 
 Your .env file should have at minimum:
-- `DATABASE_URL` - Your PostgreSQL connection string
-- `JWT_SECRET` - A secret key for JWT tokens (can use default in dev)
+- `DATABASE_URL` - SQLite file URL (recommended: `file:../data/kindkart.db`)
+- `JWT_SECRET` - A secret key for JWT tokens
 
-The backend will use development defaults if JWT_SECRET is missing, but DATABASE_URL is required.
+The backend uses SQLite and auto-initializes schema on startup.
 
 ## Start Backend
 
@@ -39,7 +39,18 @@ The backend will use development defaults if JWT_SECRET is missing, but DATABASE
 npm run dev
 ```
 
-The server will start on port 3001.
+The server starts on `PORT` (default 3001).
+If that port is already used, it automatically retries on the next available port.
+
+## Validate DB + Prisma Setup
+
+```bash
+npm run db:check
+```
+
+This verifies:
+- TypeScript backend build
+- Prisma schema validity for SQLite datasource
 
 
 

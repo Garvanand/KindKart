@@ -6,6 +6,7 @@ import { AppHeader } from './AppHeader';
 import { SidebarNav } from './SidebarNav';
 import { MobileTabNav } from './MobileTabNav';
 import { GlobalSearchModal } from './GlobalSearchModal';
+import { GuestModeBanner, FloatingUpgradeCTA } from '@/components/guest/GuestMode';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,15 +38,16 @@ export function AppShell({
     setSidebarOpen(false);
   }, [pathname]);
 
-  return (
-    <div className="relative flex min-h-screen flex-col bg-background">
-      <AppHeader
-        onMenuClick={() => setSidebarOpen((o) => !o)}
-        showSearch={!hideSidebar}
-        onSearchOpen={() => setSearchOpen(true)}
-      />
+    return (
+      <div className="relative flex min-h-screen flex-col bg-[#f4f6f3]">
+        <AppHeader
+          onMenuClick={() => setSidebarOpen((o) => !o)}
+          showSearch={!hideSidebar}
+          onSearchOpen={() => setSearchOpen(true)}
+        />
+        <GuestModeBanner />
 
-      <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
+        <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
 
       <div className="flex flex-1">
         {!hideSidebar && (
@@ -69,8 +71,8 @@ export function AppShell({
             <div
               className={cn(
                 'fixed inset-y-0 left-0 z-50 border-r border-border/50 transition-all duration-300 ease-out hidden lg:flex flex-col',
-                'pt-16 bg-card/95 backdrop-blur-xl',
-                sidebarCollapsed ? 'w-[72px]' : 'w-60'
+                'pt-16 bg-[#f4f6f3]',
+                sidebarCollapsed ? 'w-[72px]' : 'w-72'
               )}
             >
               <SidebarNav
@@ -99,7 +101,7 @@ export function AppShell({
             <AnimatePresence>
               {sidebarOpen && (
                 <motion.div
-                  className="fixed inset-y-0 left-0 z-50 w-60 border-r border-border/50 bg-card/95 backdrop-blur-xl lg:hidden pt-16"
+                  className="fixed inset-y-0 left-0 z-50 w-72 border-r border-border/50 bg-[#f4f6f3] lg:hidden pt-16"
                   initial={{ x: -240 }}
                   animate={{ x: 0 }}
                   exit={{ x: -240 }}
@@ -119,7 +121,7 @@ export function AppShell({
         <main
           className={cn(
             'flex-1 flex flex-col min-h-[calc(100vh-4rem)]',
-            !hideSidebar && (sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-60'),
+            !hideSidebar && (sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-72'),
             contentClassName
           )}
         >
@@ -134,8 +136,9 @@ export function AppShell({
         </main>
       </div>
 
-      {!hideSidebar && <MobileTabNav />}
-      {!hideSidebar && <div className="h-16 md:hidden" />}
-    </div>
+        {!hideSidebar && <MobileTabNav />}
+        {!hideSidebar && <div className="h-16 md:hidden" />}
+        <FloatingUpgradeCTA />
+      </div>
   );
 }

@@ -27,7 +27,7 @@ export default function CreateRequestPage() {
 
   if (createdRequest) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
@@ -71,9 +71,9 @@ export default function CreateRequestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card/70 backdrop-blur border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
@@ -85,7 +85,7 @@ export default function CreateRequestPage() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Community
               </Button>
-              <h1 className="text-xl font-semibold text-gray-900">Create Help Request</h1>
+              <h1 className="text-xl font-semibold text-foreground">Create Help Request</h1>
             </div>
           </div>
         </div>
@@ -101,3 +101,5 @@ export default function CreateRequestPage() {
     </div>
   );
 }
+
+

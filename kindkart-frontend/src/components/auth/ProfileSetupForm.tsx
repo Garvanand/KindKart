@@ -18,8 +18,15 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
+type ProfileSubmitData = {
+  name: string;
+  age?: number;
+  qualification?: string;
+  certifications?: string[];
+};
+
 interface ProfileSetupFormProps {
-  onComplete: (data: ProfileFormData) => void;
+  onComplete: (data: ProfileSubmitData) => void;
   isLoading?: boolean;
 }
 
@@ -42,11 +49,13 @@ export function ProfileSetupForm({ onComplete, isLoading = false }: ProfileSetup
       ? data.certifications.split(',').map(cert => cert.trim()).filter(cert => cert)
       : [];
 
-    onComplete({
+    const payload: ProfileSubmitData = {
       ...data,
       age: data.age ? parseInt(data.age) : undefined,
       certifications,
-    });
+    };
+
+    onComplete(payload);
   };
 
   return (

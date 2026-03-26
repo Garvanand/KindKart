@@ -70,13 +70,18 @@ export async function findUserByIdentifier(email?: string, phone?: string): Prom
 
 export async function createUser(input: NewUserInput): Promise<User> {
   const id = generateId();
+  const fallbackEmail = `${id}@kindkart.local`;
+  const fallbackPhone = `na_${id}`;
+  const emailValue = input.email && input.email.trim().length > 0 ? input.email.trim() : fallbackEmail;
+  const phoneValue = input.phone && input.phone.trim().length > 0 ? input.phone.trim() : fallbackPhone;
+
   db.prepare(
     `INSERT INTO users (id, email, phone, name, age, qualification, certifications, profilePhoto, isVerified)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
-    input.email || '',
-    input.phone || '',
+    emailValue,
+    phoneValue,
     input.name,
     input.age ?? null,
     input.qualification ?? null,
@@ -145,10 +150,10 @@ export async function getUserCommunities(userId: string): Promise<any[]> {
 }
 
 export async function createGuestUser(): Promise<User> {
-  const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const guestEmail = `${guestId}@guest.kindkart.local`;
-  const guestPhone = `guest_${Date.now()}`;
   const id = generateId();
+  const guestId = `guest_${id}`;
+  const guestEmail = `${guestId}@guest.kindkart.local`;
+  const guestPhone = `guest_${id}`;
 
   db.prepare(
     `INSERT INTO users (id, email, phone, name, certifications, isVerified)

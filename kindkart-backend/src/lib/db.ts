@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import type { Database as BetterSqliteDatabase } from 'better-sqlite3';
 import path from 'path';
 import { existsSync, mkdirSync } from 'fs';
 
@@ -12,7 +13,7 @@ if (!existsSync(dbDir)) {
 }
 
 // Initialize database
-const db = new Database(dbPath);
+const db: BetterSqliteDatabase = new Database(dbPath);
 db.pragma('journal_mode = WAL'); // Better concurrency
 
 // Initialize schema

@@ -28,7 +28,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <motion.div
-      className={cn('py-6 sm:py-8 border-b border-border/50', className)}
+      className={cn('py-5 sm:py-6 border-b border-[#dce4dc] bg-[#f4f6f3]', className)}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -60,7 +60,7 @@ export function PageHeader({
 
         {/* Main header */}
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4 flex-1">
+          <div className="flex items-start gap-3 sm:gap-4 flex-1">
             {onBack && (
               <Button
                 variant="ghost"
@@ -79,9 +79,9 @@ export function PageHeader({
             )}
 
             <div className="flex-1">
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground">{title}</h1>
+              <h1 className="text-[1.75rem] sm:text-[2rem] font-semibold tracking-tight text-foreground leading-[1.15]">{title}</h1>
               {description && (
-                <p className="text-base text-muted-foreground mt-2">{description}</p>
+                <p className="text-sm sm:text-[15px] text-muted-foreground mt-1.5 leading-relaxed">{description}</p>
               )}
             </div>
           </div>
@@ -114,7 +114,7 @@ export function PageSection({
   return (
     <motion.section
       className={cn(
-        'py-8 sm:py-12',
+        'py-7 sm:py-10',
         !noBorder && 'border-b border-border/50',
         className
       )}

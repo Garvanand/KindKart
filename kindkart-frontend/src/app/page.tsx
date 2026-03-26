@@ -1,619 +1,511 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import {
-  ArrowRight, MapPin, Users, Heart, Shield, MessageCircle,
-  ChevronLeft, ChevronRight, Star, Zap, Lock, Trophy,
-  Sparkles, Globe, BarChart3, Eye, CheckCircle2, ArrowUpRight,
-  Cpu, Fingerprint, Radio, Target
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
+import { motion } from 'framer-motion';
+import {
+  Home,
+  ChevronDown,
+  Shield,
+  Newspaper,
+  Store,
+  ArrowRight,
+  Eye,
+  Users,
+  CheckCircle2,
+  Compass,
+  Sparkles,
+  Clock3,
+  MessageCircle,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/authStore';
 
-/* ─── Animated Counter ─── */
-function AnimatedCounter({ value, suffix = '+', duration = 1500 }: { value: number; suffix?: string; duration?: number }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const [inView, setInView] = useState(false);
+const lora = Lora({
+  subsets: ['latin'],
+  variable: '--font-lora',
+});
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setInView(true);
-    }, { threshold: 0.3 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
+});
 
-  useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const step = Math.max(1, Math.floor(value / (duration / 16)));
-    const t = setInterval(() => {
-      start += step;
-      if (start >= value) { setCount(value); clearInterval(t); }
-      else setCount(start);
-    }, 16);
-    return () => clearInterval(t);
-  }, [value, duration, inView]);
+type LandingVariant = 'conversion' | 'brand';
 
-  return <span ref={ref} className="tabular-nums">{count.toLocaleString()}{suffix}</span>;
+const trustCards = [
+  {
+    title: 'Address verification for safer communities.',
+    bg:
+      'linear-gradient(180deg, rgba(12,24,18,0.12), rgba(12,24,18,0.82)), url(https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80)',
+  },
+  {
+    title: 'Reliable alerts and local updates from trusted neighbors.',
+    bg:
+      'linear-gradient(180deg, rgba(16,21,30,0.1), rgba(16,21,30,0.82)), url(https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=900&q=80)',
+  },
+  {
+    title: 'Discover local services, helpers, and favorites nearby.',
+    bg:
+      'linear-gradient(180deg, rgba(31,20,10,0.06), rgba(31,20,10,0.82)), url(https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=900&q=80)',
+  },
+];
+
+const storytellingSections = [
+  {
+    eyebrow: 'Step 01',
+    title: 'We verify who belongs in your local graph.',
+    body: 'KindKart starts with neighborhood trust: identity signals, locality checks, and clear accountability before requests are posted.',
+    metric: '93% of first-time requests receive trusted responses',
+    visual:
+      'linear-gradient(150deg, rgba(16,50,34,0.55), rgba(16,50,34,0.18)), url(https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=1200&q=80)',
+  },
+  {
+    eyebrow: 'Step 02',
+    title: 'Neighbors become fast responders, not passive viewers.',
+    body: 'Requests are designed for action: clear context, urgency signals, and instant messaging so someone nearby can help quickly.',
+    metric: 'Median first response time: under 14 minutes',
+    visual:
+      'linear-gradient(150deg, rgba(8,40,55,0.5), rgba(8,40,55,0.2)), url(https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80)',
+  },
+  {
+    eyebrow: 'Step 03',
+    title: 'Reputation compounds with every good deed.',
+    body: 'Each completed task strengthens social proof. Over time, your community becomes safer, faster, and more self-reliant.',
+    metric: '2.7x higher completion in verified communities',
+    visual:
+      'linear-gradient(150deg, rgba(66,38,12,0.5), rgba(66,38,12,0.2)), url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80)',
+  },
+];
+
+const valuePoints = [
+  {
+    icon: Shield,
+    title: 'Verified trust layer',
+    desc: 'Identity signals, activity history, and community ratings make every interaction safer.',
+  },
+  {
+    icon: Users,
+    title: 'Hyperlocal community graph',
+    desc: 'Find real neighbors, not random internet profiles, with locality-first matching.',
+  },
+  {
+    icon: CheckCircle2,
+    title: 'Help to action in minutes',
+    desc: 'From request to resolution, flows are optimized for quick neighborhood coordination.',
+  },
+];
+
+function getForcedVariant(value: string | null): LandingVariant | null {
+  if (value === 'brand' || value === 'conversion') return value;
+  return null;
 }
 
-/* ─── Floating Particles Background ─── */
-function ParticlesBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 30 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full bg-primary/20"
-          style={{
-            width: Math.random() * 4 + 1,
-            height: Math.random() * 4 + 1,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -30 - Math.random() * 50, 0],
-            x: [0, (Math.random() - 0.5) * 40, 0],
-            opacity: [0.2, 0.6, 0.2],
-          }}
-          transition={{
-            duration: 4 + Math.random() * 6,
-            repeat: Infinity,
-            delay: Math.random() * 3,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ─── Announcement Ticker ─── */
-function AnnouncementTicker() {
-  const items = [
-    'Trusted by 50,000+ neighbors',
-    'Escrow-secured payments',
-    '24/7 emergency response',
-    'AI-powered help matching',
-    'Karma rewards system',
-    'Community safety alerts',
-  ];
-  return (
-    <div className="relative overflow-hidden border-y border-border/30 bg-card/30 backdrop-blur-sm py-3">
-      <motion.div
-        className="flex gap-12 whitespace-nowrap"
-        animate={{ x: ['0%', '-50%'] }}
-        transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-      >
-        {[...items, ...items].map((item, i) => (
-          <span key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {item}
-          </span>
-        ))}
-      </motion.div>
-    </div>
-  );
-}
-
-/* ─── Main Homepage ─── */
-export default function Home() {
+export default function HomePage() {
   const router = useRouter();
-  const { scrollYProgress } = useScroll();
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.97]);
+  const searchParams = useSearchParams();
+  const { loginAsGuest } = useAuthStore();
+  const [variant, setVariant] = useState<LandingVariant>('conversion');
+
+  useEffect(() => {
+    const forced = getForcedVariant(searchParams.get('lp'));
+    if (forced) {
+      setVariant(forced);
+      localStorage.setItem('kindkart_lp_variant', forced);
+      return;
+    }
+
+    const stored = getForcedVariant(localStorage.getItem('kindkart_lp_variant'));
+    if (stored) {
+      setVariant(stored);
+      return;
+    }
+
+    const randomized: LandingVariant = Math.random() < 0.5 ? 'conversion' : 'brand';
+    setVariant(randomized);
+    localStorage.setItem('kindkart_lp_variant', randomized);
+  }, [searchParams]);
+
+  const handleGuestMode = () => {
+    loginAsGuest();
+    router.push('/dashboard');
+  };
+
+  const isBrandVariant = variant === 'brand';
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* ═══ NAVBAR ═══ */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/30 bg-background/60 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary via-violet-500 to-purple-600 flex items-center justify-center">
-              <Sparkles className="h-4.5 w-4.5 text-white" />
-            </div>
-            <div>
-              <span className="text-base font-bold tracking-tight">KindKart</span>
-              <span className="hidden sm:inline text-[10px] text-muted-foreground ml-2 font-medium">Neighborhood OS</span>
-            </div>
+    <div
+      className={`${plusJakarta.variable} ${lora.variable} min-h-screen bg-[#f4f5f3] text-[#173024] [font-family:var(--font-plus-jakarta)]`}
+      data-lp-variant={variant}
+    >
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_20%,rgba(24,128,78,0.08),transparent_40%),radial-gradient(circle_at_88%_8%,rgba(86,101,92,0.1),transparent_34%),linear-gradient(180deg,#f6f7f5_0%,#eef1ec_100%)]" />
+
+      <header className="sticky top-0 z-40 border-b border-[#dce2db] bg-[#f4f5f3]/90 backdrop-blur-md">
+        <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-2 text-[#1d8b4f]">
+            <Home className="h-5 w-5 fill-current" />
+            <span className="text-[2rem] font-semibold leading-none tracking-tight [font-family:var(--font-lora)]">kindkart</span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a>
-            <a href="#testimonials" className="hover:text-foreground transition-colors">Community</a>
-          </div>
+
+          <nav className="hidden items-center gap-10 text-[1rem] font-medium text-[#274031] md:flex">
+            <button className="inline-flex items-center gap-1 transition-colors hover:text-[#1d8b4f]">
+              Partners <ChevronDown className="h-4 w-4" />
+            </button>
+            <button className="inline-flex items-center gap-1 transition-colors hover:text-[#1d8b4f]">
+              Businesses <ChevronDown className="h-4 w-4" />
+            </button>
+          </nav>
+
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.push('/auth')} className="text-muted-foreground hover:text-foreground">
-              Sign In
-            </Button>
-            <Button size="sm" onClick={() => router.push('/auth')} className="bg-primary hover:bg-primary/90 shadow-glow-sm">
-              Get Started <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
-      </nav>
-
-      {/* ═══ HERO SECTION ═══ */}
-      <motion.section
-        style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative pt-32 pb-20 sm:pt-40 sm:pb-28 overflow-hidden"
-      >
-        {/* Mesh gradient background */}
-        <div className="absolute inset-0 bg-mesh-1" />
-        <ParticlesBackground />
-
-        {/* Decorative gradient orbs */}
-        <motion.div
-          className="absolute top-20 right-[10%] w-[500px] h-[500px] bg-primary/8 rounded-full blur-[120px]"
-          animate={{ y: [0, 40, 0], x: [0, 20, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute bottom-0 left-[5%] w-[400px] h-[400px] bg-purple-500/8 rounded-full blur-[100px]"
-          animate={{ y: [0, -30, 0], x: [0, -15, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 bg-primary/5 backdrop-blur-sm mb-8"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-            </span>
-            <span className="text-sm font-medium text-primary">Now in 1,200+ communities worldwide</span>
-          </motion.div>
-
-          {/* Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6"
-          >
-            Your Neighborhood.
-            <br />
-            <span className="text-gradient-neon">Organized. Trusted.</span>
-            <br />
-            Powered by Community.
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
-          >
-            The neighborhood operating system that connects, protects, and empowers your community
-            with trust-based reputation, escrow payments, and real-time coordination.
-          </motion.p>
-
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
-          >
             <Button
-              size="lg"
+              variant="secondary"
+              className="hidden h-10 rounded-full border border-[#cfd6ce] bg-[#edf0ea] px-4 text-sm font-semibold text-[#2a4133] hover:bg-[#e3e8e0] sm:inline-flex"
+              onClick={() => router.push(isBrandVariant ? '/?lp=conversion' : '/?lp=brand')}
+            >
+              {isBrandVariant ? 'View Conversion Variant' : 'View Brand Variant'}
+            </Button>
+            <Button
+              variant="secondary"
+              className="h-11 rounded-full border border-[#cfd6ce] bg-[#edf0ea] px-6 text-[1rem] font-semibold text-[#2a4133] hover:bg-[#e3e8e0]"
               onClick={() => router.push('/auth')}
-              className="h-13 px-8 text-base bg-primary hover:bg-primary/90 shadow-glow rounded-xl"
             >
-              Join Your Society <ArrowRight className="ml-2 h-5 w-5" />
+              Log in
             </Button>
             <Button
-              size="lg"
-              variant="outline"
-              onClick={() => router.push('/communities/create')}
-              className="h-13 px-8 text-base rounded-xl border-border/50 hover:bg-muted/50"
+              className="h-11 rounded-full bg-[#1d8b4f] px-6 text-[1rem] font-semibold text-white hover:bg-[#17723f]"
+              onClick={() => router.push('/auth')}
             >
-              Create Community
+              Sign up
             </Button>
-          </motion.div>
-
-          {/* Stats strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto"
-          >
-            {[
-              { label: 'Help Requests Solved', value: 100000, icon: Heart, color: 'text-rose-400' },
-              { label: 'Verified Members', value: 50000, icon: Shield, color: 'text-emerald-400' },
-              { label: 'Karma Points Earned', value: 250000, icon: Zap, color: 'text-amber-400' },
-            ].map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                className="flex flex-col items-center gap-2 p-5 rounded-2xl border border-border/30 bg-card/40 backdrop-blur-sm"
-                whileHover={{ y: -4, borderColor: 'hsl(var(--primary) / 0.3)' }}
-                transition={{ duration: 0.2 }}
-              >
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                <span className="text-3xl font-bold text-foreground">
-                  <AnimatedCounter value={stat.value} />
-                </span>
-                <span className="text-xs text-muted-foreground font-medium">{stat.label}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* ═══ ANNOUNCEMENT TICKER ═══ */}
-      <AnnouncementTicker />
-
-      {/* ═══ FEATURES SECTION ═══ */}
-      <section id="features" className="py-20 sm:py-28 relative">
-        <div className="absolute inset-0 bg-mesh-2 opacity-30" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
-              <Cpu className="h-3 w-3" /> PLATFORM CAPABILITIES
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Everything your community needs.
-              <br />
-              <span className="text-muted-foreground">Nothing it doesn&apos;t.</span>
-            </h2>
-          </motion.div>
-
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { icon: Shield, title: 'Trust & Reputation', desc: 'Build verifiable trust scores with community-validated badges, reviews, and accountability metrics.', gradient: 'from-emerald-500/20 to-teal-500/10', iconColor: 'text-emerald-400' },
-              { icon: Lock, title: 'Escrow Payments', desc: 'Secure transactions with blockchain-grade escrow. Funds release only when both parties confirm.', gradient: 'from-blue-500/20 to-cyan-500/10', iconColor: 'text-blue-400' },
-              { icon: Radio, title: 'Emergency Response', desc: 'One-tap emergency alerts notify nearby responders. Real-time safety coordination when it matters.', gradient: 'from-red-500/20 to-rose-500/10', iconColor: 'text-red-400' },
-              { icon: Trophy, title: 'Gamified Challenges', desc: 'Earn karma, unlock badges, and climb leaderboards. Make helping your neighborhood addictive.', gradient: 'from-amber-500/20 to-yellow-500/10', iconColor: 'text-amber-400' },
-              { icon: Cpu, title: 'AI-Powered Matching', desc: 'Smart algorithms match help requests with the most qualified, available, and trusted neighbors.', gradient: 'from-violet-500/20 to-purple-500/10', iconColor: 'text-violet-400' },
-              { icon: MessageCircle, title: 'Real-time Chat', desc: 'Instant messaging with request-specific threads, typing indicators, and file sharing.', gradient: 'from-pink-500/20 to-rose-500/10', iconColor: 'text-pink-400' },
-            ].map((feature, i) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="group relative p-6 rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-all duration-300"
-              >
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                <div className="relative">
-                  <div className="h-12 w-12 rounded-xl bg-muted/50 flex items-center justify-center mb-4">
-                    <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
-                </div>
-              </motion.div>
-            ))}
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* ═══ HOW IT WORKS ═══ */}
-      <section id="how-it-works" className="py-20 sm:py-28 border-t border-border/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
-              <Target className="h-3 w-3" /> HOW IT WORKS
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Three steps to a better neighborhood</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">From joining to helping — it takes less than 2 minutes.</p>
-          </motion.div>
+      <main>
+        {isBrandVariant ? (
+          <section className="mx-auto w-full max-w-7xl px-4 pb-14 pt-8 sm:px-6 lg:px-8 lg:pb-20">
+            <div className="overflow-hidden rounded-[1.8rem] border border-[#d5ded4] bg-[#e9ede8]">
+              <div className="grid items-stretch lg:grid-cols-[1.05fr_0.95fr]">
+                <div className="p-8 sm:p-12 lg:p-14">
+                  <motion.p
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="inline-flex items-center gap-2 rounded-full border border-[#cad8ca] bg-[#f1f5f0] px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#2f7e50]"
+                  >
+                    <Compass className="h-3.5 w-3.5" /> Neighborhood OS
+                  </motion.p>
 
-          <div className="grid gap-8 md:grid-cols-3 relative">
-            {/* Connecting line */}
-            <div className="hidden md:block absolute top-16 left-[16.67%] right-[16.67%] h-px bg-gradient-to-r from-primary/30 via-primary/60 to-primary/30" />
+                  <motion.h1
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.08, duration: 0.45 }}
+                    className="mt-5 text-[2.35rem] font-semibold leading-[1.1] text-[#173024] [font-family:var(--font-lora)] sm:text-[3rem]"
+                  >
+                    A calmer, safer neighborhood experience built for real people.
+                  </motion.h1>
 
-            {[
-              { step: '01', title: 'Join or Create', desc: 'Enter your community invite code or create a new gated community for your neighborhood.', icon: Users },
-              { step: '02', title: 'Post & Discover', desc: 'Request help or browse open requests. Our AI matches you with the best available neighbors.', icon: Globe },
-              { step: '03', title: 'Help & Earn', desc: 'Complete tasks, earn karma, build reputation. Secure escrow payments protect everyone.', icon: Trophy },
-            ].map((item, i) => (
-              <motion.div
-                key={item.step}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-                className="text-center relative"
-              >
-                <div className="relative inline-flex items-center justify-center mb-6">
-                  <div className="h-16 w-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <item.icon className="h-7 w-7 text-primary" />
-                  </div>
-                  <span className="absolute -top-2 -right-2 h-7 w-7 rounded-lg bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
-                    {item.step}
-                  </span>
+                  <motion.p
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.45 }}
+                    className="mt-5 max-w-xl text-lg leading-relaxed text-[#4b6153]"
+                  >
+                    KindKart helps your area coordinate help, reputation, and local commerce in one place so neighbors can act quickly and trust each other more.
+                  </motion.p>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.22, duration: 0.45 }}
+                    className="mt-8 flex flex-wrap gap-3"
+                  >
+                    <Button
+                      className="h-12 rounded-full bg-[#1d8b4f] px-7 text-[1rem] font-semibold text-white hover:bg-[#17723f]"
+                      onClick={() => router.push('/auth')}
+                    >
+                      Join KindKart <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="h-12 rounded-full border border-[#cfd7ce] bg-[#eef2ec] px-7 text-[1rem] font-semibold text-[#2c4335] hover:bg-[#e5ebe3]"
+                      onClick={handleGuestMode}
+                    >
+                      <Eye className="mr-2 h-4 w-4" /> Explore Demo Mode
+                    </Button>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.28, duration: 0.45 }}
+                    className="mt-8 grid gap-3 sm:grid-cols-3"
+                  >
+                    <div className="rounded-2xl border border-[#d3ddd2] bg-[#f7f9f6] p-4">
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#567568]">Coverage</p>
+                      <p className="mt-2 text-2xl font-bold text-[#173024]">1,200+</p>
+                      <p className="text-sm text-[#587264]">communities onboarded</p>
+                    </div>
+                    <div className="rounded-2xl border border-[#d3ddd2] bg-[#f7f9f6] p-4">
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#567568]">Response</p>
+                      <p className="mt-2 text-2xl font-bold text-[#173024]">14m</p>
+                      <p className="text-sm text-[#587264]">average first reply</p>
+                    </div>
+                    <div className="rounded-2xl border border-[#d3ddd2] bg-[#f7f9f6] p-4">
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#567568]">Trust</p>
+                      <p className="mt-2 text-2xl font-bold text-[#173024]">92%</p>
+                      <p className="text-sm text-[#587264]">verified reputation score</p>
+                    </div>
+                  </motion.div>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ═══ MOCK PREVIEW SECTION ═══ */}
-      <section className="py-20 sm:py-28 border-t border-border/30 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/3 to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
-              <Eye className="h-3 w-3" /> LIVE PREVIEW
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">See how your society looks in KindKart</h2>
-            <p className="text-muted-foreground">A real-time mission control for your community.</p>
-          </motion.div>
-
-          {/* Mock Dashboard Preview */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="max-w-5xl mx-auto"
-          >
-            <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-md overflow-hidden shadow-2xl">
-              {/* Window chrome */}
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 bg-muted/30">
-                <div className="flex gap-1.5">
-                  <div className="h-3 w-3 rounded-full bg-red-400/60" />
-                  <div className="h-3 w-3 rounded-full bg-yellow-400/60" />
-                  <div className="h-3 w-3 rounded-full bg-green-400/60" />
-                </div>
-                <div className="flex-1 flex justify-center">
-                  <div className="px-4 py-1 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                    kindkart.app/dashboard
-                  </div>
-                </div>
+                <div
+                  className="min-h-[28rem] bg-cover bg-center"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(0deg,rgba(17,30,20,0.24),rgba(17,30,20,0.24)),url(https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1400&q=80)',
+                  }}
+                />
               </div>
+            </div>
+          </section>
+        ) : (
+          <section className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-24">
+            <div className="relative overflow-hidden rounded-[1.8rem] border border-[#d5ded4] bg-[#e9ede8]">
+              <div className="grid min-h-[620px] grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
+                <div
+                  className="hidden bg-cover bg-center lg:block"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(0deg,rgba(17,30,20,0.25),rgba(17,30,20,0.25)),url(https://images.unsplash.com/photo-1519337265831-281ec6cc8514?auto=format&fit=crop&w=1400&q=80)',
+                  }}
+                />
 
-              {/* Mock dashboard content */}
-              <div className="p-6 grid grid-cols-12 gap-4">
-                {/* Sidebar mock */}
-                <div className="col-span-2 space-y-2 hidden sm:block">
-                  {['Dashboard', 'Requests', 'Mission', 'Chat', 'Wallet'].map((item, i) => (
-                    <div key={item} className={`px-3 py-2 rounded-lg text-xs ${i === 0 ? 'bg-primary/15 text-primary font-semibold' : 'text-muted-foreground'}`}>
-                      {item}
-                    </div>
-                  ))}
-                </div>
+                <div className="relative flex items-center justify-center p-5 sm:p-9">
+                  <motion.div
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45 }}
+                    className="w-full max-w-[29rem] rounded-[1.6rem] border border-[#dde4dc] bg-[#f7f8f6] p-6 shadow-[0_20px_60px_rgba(20,44,31,0.15)] sm:p-8"
+                  >
+                    <h1 className="text-center text-[2.2rem] font-semibold leading-[1.15] text-[#173024] [font-family:var(--font-lora)] sm:text-[2.45rem]">
+                      Discover your neighborhood
+                    </h1>
 
-                {/* Main content mock */}
-                <div className="col-span-12 sm:col-span-10 space-y-4">
-                  {/* Stats row */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {[
-                      { label: 'Active', value: '12', color: 'text-blue-400' },
-                      { label: 'Completed', value: '847', color: 'text-emerald-400' },
-                      { label: 'Members', value: '1.2K', color: 'text-violet-400' },
-                      { label: 'Trust', value: '92%', color: 'text-amber-400' },
-                    ].map(s => (
-                      <div key={s.label} className="p-3 rounded-xl border border-border/30 bg-muted/20">
-                        <p className="text-xs text-muted-foreground">{s.label}</p>
-                        <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
-                      </div>
-                    ))}
-                  </div>
+                    <div className="mt-7 space-y-3">
+                      <button
+                        type="button"
+                        className="w-full rounded-full border border-[#d6ddd5] bg-[#eef1ec] px-5 py-3 text-left text-[1.02rem] font-semibold text-[#1e362a] transition hover:bg-[#e3e9e1]"
+                      >
+                        Continue with Google
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full rounded-full border border-[#d6ddd5] bg-[#eef1ec] px-5 py-3 text-left text-[1.02rem] font-semibold text-[#1e362a] transition hover:bg-[#e3e9e1]"
+                      >
+                        Continue with Apple
+                      </button>
+                    </div>
 
-                  {/* Activity mock */}
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <div className="p-4 rounded-xl border border-border/30 bg-muted/10">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-xs font-semibold text-muted-foreground">LIVE ACTIVITY</span>
-                      </div>
-                      {['Help request from Block A', 'Payment verified', 'New member joined'].map((a, i) => (
-                        <div key={i} className="flex items-center gap-2 py-1.5 text-xs text-muted-foreground">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                          {a}
-                        </div>
-                      ))}
+                    <div className="my-6 flex items-center gap-3 text-[#6a7a70]">
+                      <div className="h-px flex-1 bg-[#d8e0d8]" />
+                      <span className="text-sm font-medium">or</span>
+                      <div className="h-px flex-1 bg-[#d8e0d8]" />
                     </div>
-                    <div className="p-4 rounded-xl border border-border/30 bg-muted/10">
-                      <p className="text-xs font-semibold text-muted-foreground mb-3">TRUST SCORE</p>
-                      <div className="flex items-center justify-center py-3">
-                        <div className="h-20 w-20 rounded-full border-4 border-primary/30 flex items-center justify-center">
-                          <span className="text-xl font-bold text-primary">92</span>
-                        </div>
-                      </div>
+
+                    <div className="space-y-3">
+                      <input
+                        type="email"
+                        placeholder="Email address"
+                        className="h-14 w-full rounded-2xl border border-[#cfd7ce] bg-white px-4 text-[1rem] text-[#173024] outline-none ring-0 transition placeholder:text-[#708377] focus:border-[#56a677]"
+                      />
+                      <input
+                        type="password"
+                        placeholder="Create a password"
+                        className="h-14 w-full rounded-2xl border border-[#cfd7ce] bg-white px-4 text-[1rem] text-[#173024] outline-none ring-0 transition placeholder:text-[#708377] focus:border-[#56a677]"
+                      />
                     </div>
-                  </div>
+
+                    <p className="mt-5 text-[0.95rem] leading-relaxed text-[#506156]">
+                      By continuing, you agree to KindKart&apos;s Privacy Policy, Cookie Policy, and Member Agreement.
+                    </p>
+
+                    <Button
+                      className="mt-5 h-14 w-full rounded-full bg-[#1d8b4f] text-[1.06rem] font-semibold text-white hover:bg-[#17723f]"
+                      onClick={() => router.push('/auth')}
+                    >
+                      Continue
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      className="mt-3 h-12 w-full rounded-full text-[0.98rem] font-semibold text-[#2c4335] hover:bg-[#e7ede5]"
+                      onClick={handleGuestMode}
+                    >
+                      <Eye className="mr-2 h-4 w-4" /> Try Demo Mode
+                    </Button>
+                  </motion.div>
                 </div>
               </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </section>
+        )}
 
-      {/* ═══ TESTIMONIALS ═══ */}
-      <section id="testimonials" className="py-20 sm:py-28 border-t border-border/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
-              <Heart className="h-3 w-3" /> COMMUNITY VOICES
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold">Loved by neighborhoods everywhere</h2>
-          </motion.div>
-
-          <TestimonialCarousel />
-        </div>
-      </section>
-
-      {/* ═══ FINAL CTA ═══ */}
-      <section className="py-20 sm:py-28 border-t border-border/30 relative overflow-hidden">
-        <div className="absolute inset-0 bg-mesh-1 opacity-50" />
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px]"
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 6, repeat: Infinity }}
-        />
-
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
-              Ready to transform
-              <br />
-              <span className="text-gradient-neon">your neighborhood?</span>
-            </h2>
-            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              Join thousands of communities already using KindKart to build safer, stronger, more connected neighborhoods.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                size="lg"
-                onClick={() => router.push('/auth')}
-                className="h-14 px-10 text-base bg-primary hover:bg-primary/90 shadow-glow rounded-xl"
+        <section className="mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20">
+          <div className="grid gap-6 md:grid-cols-3">
+            {trustCards.map((card, index) => (
+              <motion.article
+                key={card.title}
+                initial={{ opacity: 0, y: 22 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.45, delay: index * 0.08 }}
+                className="relative min-h-[24rem] overflow-hidden rounded-[1.3rem] border border-[#ced8cd] bg-cover bg-center"
+                style={{ backgroundImage: card.bg }}
               >
-                Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => router.push('/dashboard')}
-                className="h-14 px-10 text-base rounded-xl"
-              >
-                Explore Demo <ArrowUpRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══ FOOTER ═══ */}
-      <footer className="border-t border-border/30 bg-card/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 mb-12">
-            <div>
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 text-white" />
+                <div className="absolute inset-x-0 bottom-0 p-5">
+                  <p className="text-center text-[1.72rem] font-semibold leading-tight text-white drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)] sm:text-[1.86rem]">
+                    {card.title}
+                  </p>
                 </div>
-                <span className="font-bold">KindKart</span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Neighborhood OS built on trust, accountability, and community power.
+              </motion.article>
+            ))}
+          </div>
+        </section>
+
+        <section className="border-y border-[#d4ddd3] bg-[#f7f9f6] py-16">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto mb-12 max-w-3xl text-center">
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#2e9b5f]">Story</p>
+              <h2 className="mt-3 text-4xl font-semibold leading-tight text-[#173024] [font-family:var(--font-lora)] sm:text-5xl">
+                See how KindKart turns local intent into local action.
+              </h2>
+            </div>
+
+            <div className="space-y-10">
+              {storytellingSections.map((item, index) => (
+                <motion.article
+                  key={item.title}
+                  initial={{ opacity: 0, y: 26 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{ duration: 0.45, delay: 0.05 }}
+                  className={`grid gap-6 rounded-[1.4rem] border border-[#d7dfd6] bg-white p-5 shadow-[0_14px_34px_rgba(20,45,31,0.06)] sm:p-7 lg:grid-cols-2 ${index % 2 === 1 ? 'lg:[&>*:first-child]:order-2' : ''}`}
+                >
+                  <div className="flex flex-col justify-center">
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2e9b5f]">{item.eyebrow}</p>
+                    <h3 className="mt-3 text-3xl font-semibold leading-tight text-[#173024] [font-family:var(--font-lora)]">
+                      {item.title}
+                    </h3>
+                    <p className="mt-4 text-base leading-relaxed text-[#4f6658]">{item.body}</p>
+                    <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#d6ded5] bg-[#f2f6f2] px-4 py-2 text-sm font-semibold text-[#2e5943]">
+                      <Clock3 className="h-4 w-4" /> {item.metric}
+                    </div>
+                  </div>
+
+                  <div className="min-h-[15rem] overflow-hidden rounded-2xl border border-[#cfdbd0]">
+                    <motion.div
+                      whileInView={{ scale: 1.02 }}
+                      transition={{ duration: 0.65 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      className="h-full min-h-[15rem] w-full bg-cover bg-center"
+                      style={{ backgroundImage: item.visual }}
+                    />
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-[#d4ddd3] bg-[#f7f9f6] py-16">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto mb-12 max-w-3xl text-center">
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#2e9b5f]">Why KindKart</p>
+              <h2 className="mt-3 text-4xl font-semibold leading-tight text-[#173024] [font-family:var(--font-lora)] sm:text-5xl">
+                Connect with your neighbors, beautifully and safely.
+              </h2>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-3">
+              {valuePoints.map((item, index) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{ duration: 0.45, delay: index * 0.08 }}
+                  className="rounded-2xl border border-[#d9e1d8] bg-white p-6 shadow-[0_14px_34px_rgba(20,45,31,0.08)]"
+                >
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#e6f3eb] text-[#1d8b4f]">
+                    <item.icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#183126]">{item.title}</h3>
+                  <p className="mt-2 text-[1rem] leading-relaxed text-[#4f6658]">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className="rounded-[1.8rem] border border-[#d0dacf] bg-[linear-gradient(145deg,#1a8b4f_0%,#1d7144_55%,#254f36_100%)] p-7 text-white sm:p-10">
+            <div className="max-w-3xl">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-white/70">
+                <Sparkles className="h-4 w-4" />
+                {isBrandVariant ? 'Brand-first narrative variant' : 'Conversion-first signup variant'}
               </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-sm">Product</h4>
-              <div className="space-y-2.5">
-                {['Features', 'Trust System', 'Escrow Payments', 'Emergency Response', 'Karma Rewards'].map(item => (
-                  <p key={item} className="text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">{item}</p>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-sm">Community</h4>
-              <div className="space-y-2.5">
-                {['Community Guidelines', 'Safety Center', 'Help Center', 'Blog', 'Developers'].map(item => (
-                  <p key={item} className="text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">{item}</p>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-sm">Legal</h4>
-              <div className="space-y-2.5">
-                {['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Data Processing', 'Contact Us'].map(item => (
-                  <p key={item} className="text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">{item}</p>
-                ))}
+              <h3 className="mt-4 text-4xl font-semibold leading-tight [font-family:var(--font-lora)] sm:text-5xl">
+                {isBrandVariant
+                  ? 'Build the neighborhood product people want to open every day.'
+                  : 'Bring trust, local commerce, and help requests into one place.'}
+              </h3>
+              <p className="mt-4 text-lg leading-relaxed text-white/80">
+                KindKart helps communities coordinate faster with verified members, built-in reputation, and actions that feel as simple as messaging a friend.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button
+                  className="h-12 rounded-full bg-white px-6 text-[1rem] font-semibold text-[#165e38] hover:bg-[#edf3ef]"
+                  onClick={() => router.push('/auth')}
+                >
+                  Join KindKart <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="h-12 rounded-full border border-white/30 bg-white/10 px-6 text-[1rem] font-semibold text-white hover:bg-white/20"
+                  onClick={handleGuestMode}
+                >
+                  Explore as Guest
+                </Button>
               </div>
             </div>
           </div>
-          <div className="pt-8 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} KindKart. Building resilient communities together.
-            </p>
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <Globe className="h-4 w-4 hover:text-foreground cursor-pointer transition-colors" />
-              <MessageCircle className="h-4 w-4 hover:text-foreground cursor-pointer transition-colors" />
-              <Shield className="h-4 w-4 hover:text-foreground cursor-pointer transition-colors" />
-            </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-[#d5ded4] bg-[#eff2ed] py-8">
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-4 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-8">
+          <p className="text-sm text-[#506157]">© {new Date().getFullYear()} kindkart. Designed for better neighborhoods.</p>
+          <div className="flex items-center gap-5 text-sm font-medium text-[#314739]">
+            <span className="inline-flex items-center gap-1">
+              <Shield className="h-4 w-4" /> Safe Communities
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Newspaper className="h-4 w-4" /> Local News
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Store className="h-4 w-4" /> Local Business
+            </span>
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
 
-/* ─── Testimonial Carousel ─── */
-function TestimonialCarousel() {
-  const testimonials = [
-    { name: 'Asha Reddy', role: 'Block A President', text: 'KindKart transformed how our 200-unit society operates. From maintenance requests to emergency alerts, everything is streamlined.', avatar: 'AR', stars: 5 },
-    { name: 'Marcus Chen', role: 'Community Helper', text: 'I\'ve completed 47 help requests and built a reputation I\'m proud of. The escrow system makes getting paid worry-free.', avatar: 'MC', stars: 5 },
-    { name: 'Priya Sharma', role: 'Safety Coordinator', text: 'The emergency response feature saved us during a flood. We coordinated 50 volunteers in under 10 minutes.', avatar: 'PS', stars: 5 },
-    { name: 'David Kim', role: 'New Resident', text: 'Just moved in and KindKart helped me connect with neighbors instantly. Found a plumber within 15 minutes!', avatar: 'DK', stars: 5 },
-  ];
-  const [idx, setIdx] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % testimonials.length), 5000);
-    return () => clearInterval(t);
-  }, []);
-
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="grid gap-5 sm:grid-cols-2">
-        {testimonials.map((t, i) => (
-          <motion.div
-            key={t.name}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.1 }}
-            className="p-6 rounded-2xl border border-border/40 bg-card/40 backdrop-blur-sm hover:border-primary/20 transition-all duration-300"
-          >
-            <div className="flex items-center gap-1 mb-4">
-              {Array.from({ length: t.stars }).map((_, j) => (
-                <Star key={j} className="h-4 w-4 text-amber-400 fill-amber-400" />
-              ))}
-            </div>
-            <p className="text-sm text-foreground/90 mb-5 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">
-                {t.avatar}
-              </div>
-              <div>
-                <p className="text-sm font-semibold">{t.name}</p>
-                <p className="text-xs text-muted-foreground">{t.role}</p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+      <div className="fixed bottom-4 left-4 z-30 hidden items-center gap-2 rounded-full border border-[#d0dacf] bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#385545] shadow-[0_8px_20px_rgba(22,45,31,0.12)] md:inline-flex">
+        <MessageCircle className="h-3.5 w-3.5" />
+        Variant: {isBrandVariant ? 'Brand-first' : 'Conversion-first'}
       </div>
     </div>
   );

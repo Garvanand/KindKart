@@ -25,27 +25,27 @@
 
 /* ===== SOCIETY LIGHT - Clean professional ===== */
 :root, :root[data-theme='society-light'] {
-  --background: 0 0% 98%;
-  --foreground: 222 47% 11%;
+  --background: 96 17% 96%;
+  --foreground: 140 23% 16%;
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
+  --card-foreground: 140 23% 16%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --primary: 238 76% 56%;
+  --popover-foreground: 140 23% 16%;
+  --primary: 141 64% 33%;
   --primary-foreground: 0 0% 100%;
-  --primary-light: 238 76% 70%;
-  --primary-dark: 238 76% 42%;
-  --secondary: 220 14% 96%;
-  --secondary-foreground: 220 9% 46%;
-  --muted: 220 14% 96%;
-  --muted-foreground: 220 9% 46%;
-  --accent: 220 14% 96%;
-  --accent-foreground: 220 9% 16%;
+  --primary-light: 141 50% 45%;
+  --primary-dark: 141 64% 28%;
+  --secondary: 96 14% 94%;
+  --secondary-foreground: 144 13% 38%;
+  --muted: 96 14% 94%;
+  --muted-foreground: 144 13% 38%;
+  --accent: 96 14% 94%;
+  --accent-foreground: 140 23% 16%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 238 76% 56%;
+  --border: 120 12% 86%;
+  --input: 120 12% 86%;
+  --ring: 141 64% 33%;
   --success: 142 71% 45%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
@@ -54,24 +54,24 @@
   --info-foreground: 0 0% 100%;
   --emergency: 0 84% 60%;
   --emergency-foreground: 0 0% 100%;
-  --chart-1: 238 76% 56%;
-  --chart-2: 142 71% 45%;
+  --chart-1: 141 64% 33%;
+  --chart-2: 152 71% 38%;
   --chart-3: 38 92% 50%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
-  --sidebar-bg: 224 71% 4%;
-  --sidebar-foreground: 220 14% 80%;
-  --sidebar-active: 238 76% 56%;
-  --sidebar-hover: 220 14% 10%;
+  --chart-4: 195 62% 42%;
+  --chart-5: 24 72% 45%;
+  --sidebar-bg: 96 17% 96%;
+  --sidebar-foreground: 140 16% 32%;
+  --sidebar-active: 141 64% 33%;
+  --sidebar-hover: 96 11% 91%;
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
-  --glow-primary: 0 0 20px -4px rgba(99, 102, 241, 0.3);
+  --glow-primary: 0 0 20px -4px rgba(29, 139, 79, 0.25);
   --glow-success: 0 0 20px -4px rgba(34, 197, 94, 0.3);
-  --glow-neon: 0 0 20px -4px rgba(56, 189, 248, 0.3);
+  --glow-neon: 0 0 20px -4px rgba(29, 139, 79, 0.22);
 }
 
 /* ===== MIDNIGHT ELITE - Premium dark mode (DEFAULT) ===== */
@@ -211,17 +211,17 @@
 
 @layer utilities {
   /* ===== GRADIENTS ===== */
-  .gradient-primary { @apply bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600; }
-  .gradient-secondary { @apply bg-gradient-to-r from-violet-600 to-purple-600; }
+  .gradient-primary { @apply bg-gradient-to-r from-green-700 via-green-600 to-emerald-600; }
+  .gradient-secondary { @apply bg-gradient-to-r from-green-700 to-green-600; }
   .gradient-success { @apply bg-gradient-to-r from-emerald-500 to-teal-500; }
-  .gradient-warm { @apply bg-gradient-to-r from-orange-500 to-rose-500; }
+  .gradient-warm { @apply bg-gradient-to-r from-amber-500 to-orange-500; }
   .gradient-emergency { @apply bg-gradient-to-r from-red-600 to-rose-600; }
-  .gradient-neon { @apply bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600; }
+  .gradient-neon { @apply bg-gradient-to-r from-green-700 via-green-600 to-emerald-600; }
   .gradient-mesh { background: linear-gradient(135deg, hsl(var(--primary)/0.15) 0%, transparent 50%, hsl(var(--accent)/0.1) 100%); }
 
-  .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-violet-500; }
-  .text-gradient-premium { @apply bg-clip-text text-transparent bg-gradient-to-br from-primary via-purple-500 to-pink-500; }
-  .text-gradient-neon { @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500; }
+  .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-green-700 to-emerald-600; }
+  .text-gradient-premium { @apply bg-clip-text text-transparent bg-gradient-to-br from-green-700 via-green-600 to-emerald-600; }
+  .text-gradient-neon { @apply bg-clip-text text-transparent bg-gradient-to-r from-green-700 via-green-600 to-emerald-600; }
 
   /* ===== GLASSMORPHISM ===== */
   .glass {

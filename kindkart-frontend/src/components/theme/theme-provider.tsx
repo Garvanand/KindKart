@@ -17,18 +17,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    const stored = (localStorage.getItem(STORAGE_KEY) as ThemeId | null) || 'society-light';
-    setThemeState(stored);
-    document.documentElement.setAttribute('data-theme', stored);
+    setThemeState('society-light');
+    document.documentElement.setAttribute('data-theme', 'society-light');
+    localStorage.setItem(STORAGE_KEY, 'society-light');
   }, []);
 
   const setTheme = (value: ThemeId) => {
-    setThemeState(value);
+    const forcedTheme: ThemeId = 'society-light';
+    setThemeState(forcedTheme);
     if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', value);
+      document.documentElement.setAttribute('data-theme', forcedTheme);
     }
     if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, value);
+      localStorage.setItem(STORAGE_KEY, forcedTheme);
     }
   };
 

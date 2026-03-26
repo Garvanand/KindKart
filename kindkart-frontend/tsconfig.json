@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,9 +23,36 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".next-build-11552/types/**/*.ts",
+    ".next-build-14928/types/**/*.ts",
+    ".next-build-15116/types/**/*.ts",
+    ".next-build-17956/types/**/*.ts",
+    ".next-build-21652/types/**/*.ts",
+    ".next-build-24016/types/**/*.ts",
+    ".next-build-24340/types/**/*.ts",
+    ".next-build-25536/types/**/*.ts",
+    ".next-build-28716/types/**/*.ts",
+    ".next-build-28956/types/**/*.ts",
+    ".next-build-30124/types/**/*.ts",
+    ".next-build-30288/types/**/*.ts",
+    ".next-build-30472/types/**/*.ts",
+    ".next-build-32560/types/**/*.ts",
+    ".next-build-9436/types/**/*.ts",
+    ".next-build-9704/types/**/*.ts",
+    ".next-build/types/**/*.ts",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    ".next-build-24560/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

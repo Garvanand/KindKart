@@ -1,10 +1,8 @@
-import { ReactNode } from 'react';
+import { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
 
-export interface PremiumCardProps {
+export interface PremiumCardProps extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
   children: ReactNode;
-  className?: string;
   interactive?: boolean;
   elevated?: boolean;
   padding?: 'sm' | 'md' | 'lg';
@@ -25,24 +23,22 @@ export function PremiumCard({
   interactive = false,
   elevated = false,
   padding = 'md',
+  ...restProps
 }: PremiumCardProps) {
-  const Component = interactive ? motion.div : 'div';
-
   return (
-    <Component
+    <div
       className={cn(
-        'rounded-xl border border-border/50 bg-card',
+        'rounded-2xl border border-[#dbe3db] bg-white',
         paddingMap[padding],
-        elevated && 'shadow-lg',
-        interactive && 'card-interactive cursor-pointer',
+        elevated && 'shadow-sm',
+        interactive && 'cursor-pointer transition-colors duration-200 hover:bg-[#f7faf7]',
         !interactive && 'transition-all duration-200',
         className
       )}
-      whileHover={interactive ? { y: -4 } : undefined}
-      transition={interactive ? { duration: 0.2 } : undefined}
+      {...restProps}
     >
       {children}
-    </Component>
+    </div>
   );
 }
 

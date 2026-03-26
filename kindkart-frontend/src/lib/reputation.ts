@@ -288,19 +288,19 @@ export const checkBadgeQualification = (badgeId: string, userStats: any): boolea
   
   switch (condition.type) {
     case 'completed_helps':
-      return userStats.completedHelps >= condition.count;
+      return 'count' in condition && userStats.completedHelps >= condition.count;
     case 'completed_requests':
-      return userStats.completedRequests >= condition.count;
+      return 'count' in condition && userStats.completedRequests >= condition.count;
     case 'communities_created':
-      return userStats.communitiesCreated >= condition.count;
+      return 'count' in condition && userStats.communitiesCreated >= condition.count;
     case 'community_rank':
-      return userStats.communityRank <= condition.rank;
+      return 'rank' in condition && userStats.communityRank <= condition.rank;
     case 'fast_responses':
-      return userStats.fastResponses >= condition.count;
+      return 'count' in condition && userStats.fastResponses >= condition.count;
     case 'on_time_payments':
-      return userStats.onTimePayments >= condition.count;
+      return 'count' in condition && userStats.onTimePayments >= condition.count;
     case 'completion_rate':
-      return userStats.completionRate >= condition.rate;
+      return 'rate' in condition && userStats.completionRate >= condition.rate;
     default:
       return false;
   }

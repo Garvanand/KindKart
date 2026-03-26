@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ClientAppTour } from "@/components/ClientAppTour";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
           <ErrorBoundary>
             <ToastProvider>
               {children}
+              <SiteFooter />
               <ClientAppTour />
             </ToastProvider>
           </ErrorBoundary>
