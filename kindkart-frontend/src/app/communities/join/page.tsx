@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { JoinCommunityForm } from '@/components/community/JoinCommunityForm';
@@ -8,12 +8,16 @@ import { Button } from '@/components/ui/button';
 
 export default function JoinCommunityPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isHydrated } = useAuthStore();
   const [joinedMembership, setJoinedMembership] = useState<any>(null);
 
-  // Redirect if not authenticated
-  if (!isAuthenticated || !user) {
-    router.push('/auth');
+  useEffect(() => {
+    if (isHydrated && (!isAuthenticated || !user)) {
+      router.replace('/auth');
+    }
+  }, [isHydrated, isAuthenticated, user, router]);
+
+  if (!isHydrated || !isAuthenticated || !user) {
     return null;
   }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
@@ -103,7 +103,7 @@ function getForcedVariant(value: string | null): LandingVariant | null {
   return null;
 }
 
-export default function HomePage() {
+function HomePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loginAsGuest } = useAuthStore();
@@ -508,5 +508,13 @@ export default function HomePage() {
         Variant: {isBrandVariant ? 'Brand-first' : 'Conversion-first'}
       </div>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f4f5f3]" />}>
+      <HomePageContent />
+    </Suspense>
   );
 }
