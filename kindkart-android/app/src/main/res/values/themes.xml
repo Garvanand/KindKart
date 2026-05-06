@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.KindKart" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/kindkart_green</item>
+        <item name="android:colorPrimaryDark">@color/kindkart_green_dark</item>
+        <item name="android:colorAccent">@color/kindkart_green_light</item>
+        <item name="android:windowBackground">@color/surface_background</item>
+        <item name="android:statusBarColor">@color/surface_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/surface_card</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

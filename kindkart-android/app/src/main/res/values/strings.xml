@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KindKart</string>
+    <string name="splash_tagline">Neighborhood OS</string>
+    <string name="developer_credit">Built by Garv Anand • VIT</string>
+</resources>

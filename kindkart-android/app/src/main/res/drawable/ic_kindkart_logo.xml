@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:translateX="18" android:translateY="18">
+        <!-- Background circle -->
+        <path
+            android:pathData="M36,0 C55.88,0 72,16.12 72,36 C72,55.88 55.88,72 36,72 C16.12,72 0,55.88 0,36 C0,16.12 16.12,0 36,0 Z"
+            android:fillColor="#1D8B4F" />
+        <!-- K Letter -->
+        <path
+            android:pathData="M24,18 L30,18 L30,33 L42,18 L49,18 L36,33.5 L50,54 L43,54 L32,38 L30,40.5 L30,54 L24,54 Z"
+            android:fillColor="#FFFFFF" />
+    </group>
+</vector>
